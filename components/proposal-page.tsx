@@ -546,12 +546,18 @@ function ProposalCard({ children, className = "" }: { children: ReactNode; class
   )
 }
 
+function isPrincipalSponsorProposal(role: ProposalRole): boolean {
+  return role.type === "sponsor-ninong" || role.type === "sponsor-ninang"
+}
+
 function ProposalPersonalLetter({
   inviteeName,
   roleTitle,
+  principalSponsor = false,
 }: {
   inviteeName: string
   roleTitle: string
+  principalSponsor?: boolean
 }) {
   const siteConfig = useSiteConfig()
   const groom = siteConfig.couple.groomNickname || siteConfig.couple.groom
@@ -646,8 +652,9 @@ function ProposalPersonalLetter({
             aria-hidden
           />
           <span>
-            {venueName}
-            {venueDetail ? `, ${venueDetail}` : ""}
+            {principalSponsor
+              ? "San Bartolome Parish, Magalang, Pampanga"
+              : `${venueName}${venueDetail ? `, ${venueDetail}` : ""}`}
           </span>
         </p>
       </div>
@@ -655,24 +662,51 @@ function ProposalPersonalLetter({
       <div
         className={`font-goudy-italic mx-auto max-w-md space-y-3 text-pretty text-[0.9375rem] leading-relaxed sm:space-y-3.5 sm:text-base ${sectionType.textRelaxed}`}
       >
-        <p>
-          <span className="not-italic" style={{ color: INK }}>
-            But this isn&apos;t just a save-the-date.
-          </span>{" "}
-          This is a personal ask, especially meant for you.
-        </p>
-        <p>
-          As we imagine our wedding day, we find ourselves thinking about the people we would want
-          beside us as we celebrate one of the biggest moments of our lives.
-        </p>
-        <p>
-          You are someone we would genuinely love to have there — not just as a guest, but as
-          someone who will stand beside us, celebrate with us, laugh with us, and share in the
-          memories we will carry for years to come.
-        </p>
+        {principalSponsor ? (
+          <>
+            <p>This is not a general invitation. This is a personal ask, especially meant for you.</p>
+            <div className="py-1">
+              <OrnamentalDivider compact />
+            </div>
+            <p>
+              As we prepare for our wedding, we find ourselves thinking about the people we would be
+              grateful to have by our side on one of the most meaningful days of our lives.
+            </p>
+            <p>
+              For us, having a {roleTitle} is more than simply being part of the wedding ceremony.
+              It means having someone we respect, someone whose experiences we can learn from, and
+              someone whose wisdom and blessings we would be grateful to have as we build our life
+              together.
+            </p>
+            <p
+              className={`${cinzel.className} not-italic text-[0.65rem] font-semibold uppercase tracking-[0.14em] sm:text-xs sm:tracking-[0.18em]`}
+              style={{ color: palette.label }}
+            >
+              With great respect and sincerity, we would like to ask you a very special question:
+            </p>
+          </>
+        ) : (
+          <>
+            <p>
+              <span className="not-italic" style={{ color: INK }}>
+                But this isn&apos;t just a save-the-date.
+              </span>{" "}
+              This is a personal ask, especially meant for you.
+            </p>
+            <p>
+              As we imagine our wedding day, we find ourselves thinking about the people we would
+              want beside us as we celebrate one of the biggest moments of our lives.
+            </p>
+            <p>
+              You are someone we would genuinely love to have there — not just as a guest, but as
+              someone who will stand beside us, celebrate with us, laugh with us, and share in the
+              memories we will carry for years to come.
+            </p>
+          </>
+        )}
       </div>
 
-      {inviteeName.trim() ? (
+      {!principalSponsor && inviteeName.trim() ? (
         <div
           className="mx-auto grid max-w-md grid-cols-1 gap-px overflow-hidden rounded-xl border sm:grid-cols-2"
           style={{ borderColor: BORDER_SOFT, background: GOLD_BORDER_SOFT }}
@@ -711,12 +745,14 @@ function ProposalPersonalLetter({
         </div>
       ) : null}
 
-      <p
-        className={`${cinzel.className} text-[0.65rem] font-semibold uppercase tracking-[0.16em] sm:text-xs sm:tracking-[0.2em]`}
-        style={{ color: palette.label }}
-      >
-        So, with all our hearts, we would like to ask you
-      </p>
+      {!principalSponsor ? (
+        <p
+          className={`${cinzel.className} text-[0.65rem] font-semibold uppercase tracking-[0.16em] sm:text-xs sm:tracking-[0.2em]`}
+          style={{ color: palette.label }}
+        >
+          So, with all our hearts, we would like to ask you
+        </p>
+      ) : null}
     </div>
   )
 }
@@ -732,11 +768,13 @@ function ProposalAskSection({
   submitting,
   onYes,
   onNo,
+  principalSponsor = false,
 }: {
   roleTitle: string
   submitting?: boolean
   onYes: () => void
   onNo: () => void
+  principalSponsor?: boolean
 }) {
   return (
     <div
@@ -782,9 +820,9 @@ function ProposalAskSection({
         className={`font-goudy-italic mx-auto mt-3 max-w-md text-[0.9375rem] leading-relaxed sm:mt-4 sm:text-base ${sectionType.textRelaxed}`}
         style={{ color: palette.body }}
       >
-        We know that being part of the wedding party comes with time, effort, and a little bit of
-        responsibility. More than anything, we hope it will be a chance for us to celebrate this
-        beautiful moment together.
+        {principalSponsor
+          ? "Having you share this moment with us would truly make our wedding more meaningful."
+          : "We know that being part of the wedding party comes with time, effort, and a little bit of responsibility. More than anything, we hope it will be a chance for us to celebrate this beautiful moment together."}
       </p>
 
       <div className="mx-auto mt-6 flex w-full max-w-sm flex-col gap-2 sm:mt-9 sm:gap-2.5">
@@ -795,7 +833,11 @@ function ProposalAskSection({
           className={`${primaryBtnClass} min-h-12 w-full`}
           style={primaryBtnStyle}
         >
-          {submitting ? "Saving..." : "Yes, I'd Love To!"}
+          {submitting
+            ? "Saving..."
+            : principalSponsor
+              ? "Yes, I'd Be Honored 🤍"
+              : "Yes, I'd Love To!"}
         </button>
         <button
           type="button"
@@ -804,8 +846,14 @@ function ProposalAskSection({
           className={`${secondaryBtnClass} min-h-11 w-full`}
           style={secondaryBtnStyle}
         >
-          <span className="sm:hidden">No, With Love</span>
-          <span className="hidden sm:inline">No, With Love & Warm Wishes</span>
+          {principalSponsor ? (
+            "No, With Love & Warm Wishes"
+          ) : (
+            <>
+              <span className="sm:hidden">No, With Love</span>
+              <span className="hidden sm:inline">No, With Love & Warm Wishes</span>
+            </>
+          )}
         </button>
       </div>
     </div>
@@ -874,6 +922,7 @@ function ProposalPageInner({ role }: ProposalPageProps) {
   const groomSign = siteConfig.couple.groomNickname || siteConfig.couple.groom
   const brideSign = siteConfig.couple.brideNickname || siteConfig.couple.bride
   const confirmedDisplayName = (inviteeFromLink || preferredName).trim()
+  const principalSponsor = isPrincipalSponsorProposal(role)
 
   const submitResponse = async (status: "Confirmed" | "Declined", name: string) => {
     const response = await fetch("/api/proposal-responses", {
@@ -1031,6 +1080,7 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                 <ProposalPersonalLetter
                   inviteeName={inviteeFromLink || preferredName}
                   roleTitle={role.title}
+                  principalSponsor={principalSponsor}
                 />
 
                 {validationError && flowState === "question" && (
@@ -1040,23 +1090,29 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                 <ProposalAskSection
                   roleTitle={role.title}
                   submitting={submitting}
+                  principalSponsor={principalSponsor}
                   onYes={() => void handleYesClick()}
                   onNo={() => setFlowState("no_clicked")}
                 />
 
-                <div className="pt-4 sm:pt-6">
-                  <OrnamentalDivider compact />
-                  <p
-                    className={`${cinzel.className} mt-4 text-[0.58rem] font-medium uppercase tracking-[0.2em] sm:text-[0.625rem]`}
-                    style={{ color: palette.bodySoft }}
-                  >
-                    With love,
-                    <br />
-                    <span className={`${theSeasons.className} mt-1 inline-block text-sm normal-case tracking-[0.08em]`} style={{ color: INK }}>
-                      {groomSign} & {brideSign}
-                    </span>
-                  </p>
-                </div>
+                {!principalSponsor ? (
+                  <div className="pt-4 sm:pt-6">
+                    <OrnamentalDivider compact />
+                    <p
+                      className={`${cinzel.className} mt-4 text-[0.58rem] font-medium uppercase tracking-[0.2em] sm:text-[0.625rem]`}
+                      style={{ color: palette.bodySoft }}
+                    >
+                      With love,
+                      <br />
+                      <span
+                        className={`${theSeasons.className} mt-1 inline-block text-sm normal-case tracking-[0.08em]`}
+                        style={{ color: INK }}
+                      >
+                        {groomSign} & {brideSign}
+                      </span>
+                    </p>
+                  </div>
+                ) : null}
               </div>
               </ProposalCard>
             </motion.div>
@@ -1177,7 +1233,9 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                   script="thank you"
                 />
 
-                <ProposalFlowSubheader>We couldn&apos;t be happier</ProposalFlowSubheader>
+                <ProposalFlowSubheader>
+                  {principalSponsor ? "Thank you for saying yes!" : "We couldn&apos;t be happier"}
+                </ProposalFlowSubheader>
 
                 <div
                   className="mx-auto mb-2 max-w-sm rounded-2xl px-6 py-4 shadow-sm backdrop-blur-sm sm:mb-4"
@@ -1199,24 +1257,47 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                     className={`${cinzel.className} mt-2 block text-[10px] font-semibold tracking-[0.14em] uppercase sm:text-[11px]`}
                     style={{ color: palette.bodySoft }}
                   >
-                    Standing as our {role.title}
+                    {principalSponsor
+                      ? `Our ${role.title}`
+                      : `Standing as our ${role.title}`}
                   </span>
                 </div>
 
                 <ProposalFlowBody className="mb-8 max-w-md text-center sm:mb-10">
-                  Thank you for being willing to share this special moment with us. We can&apos;t
-                  wait to celebrate, laugh, make memories, and experience this beautiful day
-                  together. Having you beside us will make our wedding day even more special.
-                  Let&apos;s make some unforgettable memories together!
+                  {principalSponsor ? (
+                    <>
+                      We are truly happy and honored to have you accept this special role in our
+                      wedding. Your support means a lot to us, and we look forward to celebrating
+                      this beautiful day with you and creating a memory we can cherish for years to
+                      come. Thank you for being part of this special moment.
+                    </>
+                  ) : (
+                    <>
+                      Thank you for being willing to share this special moment with us. We
+                      can&apos;t wait to celebrate, laugh, make memories, and experience this
+                      beautiful day together. Having you beside us will make our wedding day even
+                      more special. Let&apos;s make some unforgettable memories together!
+                    </>
+                  )}
                 </ProposalFlowBody>
 
                 <p
                   className={`${cinzel.className} text-center text-[0.58rem] font-medium uppercase tracking-[0.16em]`}
                   style={{ color: palette.bodySoft }}
                 >
-                  With love,
-                  <br />
-                  {groomSign} & {brideSign}
+                  {principalSponsor ? (
+                    <>
+                      With love and heartfelt gratitude,
+                      <br />
+                      {groomSign} & {brideSign}
+                    </>
+                  ) : (
+                    <>
+                      With love,
+                      <br />
+                      {groomSign} & {brideSign}
+                    </>
+                  )}
                 </p>
 
                 <div className="flex items-center justify-center pb-2 sm:pb-3">
@@ -1256,13 +1337,29 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                   script="for responding"
                 />
 
-                <ProposalFlowSubheader>We completely understand</ProposalFlowSubheader>
+                <ProposalFlowSubheader>
+                  {principalSponsor
+                    ? "We completely understand and respect your decision"
+                    : "We completely understand"}
+                </ProposalFlowSubheader>
 
                 <ProposalFlowBody className="mb-8 max-w-lg text-center sm:mb-10">
-                  Thank you for taking the time to consider being part of our wedding party. Please
-                  know that there are absolutely no hard feelings. Whether you&apos;re standing
-                  beside us or cheering for us from wherever you are, we will always be grateful to
-                  have you in our lives.
+                  {principalSponsor ? (
+                    <>
+                      Thank you for taking the time to read our letter and consider our request. We
+                      sincerely appreciate your kindness and the thought you have given to our
+                      invitation. There are no hard feelings at all. We are simply grateful to have
+                      shared this moment with you and to have you celebrate our happiness in your
+                      own way.
+                    </>
+                  ) : (
+                    <>
+                      Thank you for taking the time to consider being part of our wedding party.
+                      Please know that there are absolutely no hard feelings. Whether you&apos;re
+                      standing beside us or cheering for us from wherever you are, we will always
+                      be grateful to have you in our lives.
+                    </>
+                  )}
                 </ProposalFlowBody>
 
                 <div className="flex items-center justify-center pt-4">
@@ -1312,8 +1409,9 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                 <ProposalFlowSubheader>Your message has reached us</ProposalFlowSubheader>
 
                 <ProposalFlowBody className="mb-6 max-w-md text-center sm:mb-8">
-                  We hope you&apos;ll still celebrate this beautiful day with us in your own way.
-                  Your love and warmest wishes mean the world to us.
+                  {principalSponsor
+                    ? "We are simply grateful to have shared this moment with you. Your love and warmest wishes mean the world to us."
+                    : "We hope you'll still celebrate this beautiful day with us in your own way. Your love and warmest wishes mean the world to us."}
                 </ProposalFlowBody>
 
                 <p
