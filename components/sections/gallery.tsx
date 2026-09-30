@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { createPortal } from "react-dom"
-import Link from "next/link"
 import Image from "next/image"
 import localFont from "next/font/local"
 import { X, ChevronLeft, ChevronRight, Camera } from "lucide-react"
@@ -28,14 +27,10 @@ const aboveTheBeyond = localFont({
   variable: "--font-above-beyond",
 })
 
-const IVORY = "#fffaf4"
 const GOLD = "var(--color-welcome-gold)"
 const NAVY = "var(--color-welcome-navy)"
 const SCRIPT = "var(--color-welcome-green)"
 const BODY = "var(--color-welcome-text)"
-const NAV_GOLD =
-  "linear-gradient(180deg, #E8D5A3 0%, #CDB072 52%, #C4A265 100%)"
-const GOLD_BORDER = "color-mix(in srgb, var(--color-welcome-gold) 38%, transparent)"
 
 const goldDividerStyle = {
   background: "linear-gradient(to right, transparent, var(--color-welcome-gold), transparent)",
@@ -46,7 +41,7 @@ const goldDividerStyleLeft = {
 } as const
 
 const CORNER_DECO_CLASS =
-  "block h-auto w-auto max-w-[80px] sm:max-w-[120px] md:max-w-[170px] lg:max-w-[205px] xl:max-w-[245px] select-none"
+  "block h-auto w-auto max-w-[165px] sm:max-w-[245px] md:max-w-[350px] lg:max-w-[425px] xl:max-w-[500px] select-none"
 
 function OutsideDivider() {
   return (
@@ -102,16 +97,16 @@ function GalleryTitle() {
 }
 
 const galleryItems = [
-  { image: "/mobile-background/couples (21).webp", text: " " },
-  { image: "/mobile-background/couples (8).webp", text: " " },
-  { image: "/mobile-background/couples (26).webp", text: " " },
-  { image: "/mobile-background/couples (22).webp", text: " " },
-  { image: "/mobile-background/couples (7).webp", text: " " },
-  { image: "/mobile-background/couples (31).webp", text: " " },
-  { image: "/mobile-background/couples (36).webp", text: " " },
-  { image: "/mobile-background/couples (73).webp", text: " " },
-  { image: "/mobile-background/couples (74).webp", text: " " },
-  { image: "/mobile-background/couples (70).webp", text: " " },
+  { image: "/mobile-background/couple (1).webp", text: " " },
+  { image: "/mobile-background/couple (2).webp", text: " " },
+  { image: "/mobile-background/couple (3).webp", text: " " },
+  { image: "/mobile-background/couple (4).webp", text: " " },
+  { image: "/mobile-background/couple (5).webp", text: " " },
+  { image: "/mobile-background/couple (6).webp", text: " " },
+  { image: "/mobile-background/couple (7).webp", text: " " },
+  { image: "/mobile-background/couple (8).webp", text: " " },
+  { image: "/mobile-background/couple (9).webp", text: " " },
+  { image: "/mobile-background/couple (10).webp", text: " " },
 
 ]
 
@@ -236,7 +231,7 @@ export function Gallery() {
         <div className="pointer-events-none absolute left-0 top-0 z-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/decoration/top-left-corner.png"
+            src="/deco/left-top-deco.png"
             alt=""
             aria-hidden="true"
             className={CORNER_DECO_CLASS}
@@ -245,7 +240,7 @@ export function Gallery() {
         <div className="pointer-events-none absolute right-0 top-0 z-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/decoration/top-right-corner.png"
+            src="/deco/right-top-deco.png"
             alt=""
             aria-hidden="true"
             className={CORNER_DECO_CLASS}
@@ -254,7 +249,7 @@ export function Gallery() {
         <div className="pointer-events-none absolute bottom-0 left-0 z-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/decoration/deco/bottom-left.png"
+            src="/deco/left-bottom-deco.png"
             alt=""
             aria-hidden="true"
             className={CORNER_DECO_CLASS}
@@ -263,7 +258,7 @@ export function Gallery() {
         <div className="pointer-events-none absolute bottom-0 right-0 z-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/decoration/deco/bottom-right.png"
+            src="/deco/right-bottom-deco.png"
             alt=""
             aria-hidden="true"
             className={CORNER_DECO_CLASS}
@@ -427,19 +422,12 @@ export function Gallery() {
               ))}
             </div>
 
-            <div className="mt-10 sm:mt-12 md:mt-14 flex justify-center">
-              <Link
-                href="/gallery"
-                className={`${cinzel.className} inline-flex items-center justify-center rounded-full border px-8 py-3 text-[0.625rem] font-semibold uppercase tracking-[0.18em] shadow-[0_8px_18px_color-mix(in_srgb,var(--color-welcome-gold)_22%,transparent)] transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] sm:text-[0.6875rem] sm:tracking-[0.22em]`}
-                style={{
-                  background: NAV_GOLD,
-                  borderColor: GOLD_BORDER,
-                  color: IVORY,
-                }}
-              >
-                View Full Gallery
-              </Link>
-            </div>
+            <p
+              className={`font-goudy-italic mx-auto mt-10 max-w-lg px-2 text-center leading-relaxed sm:mt-12 md:mt-14 ${sectionType.textRelaxed}`}
+              style={{ color: BODY }}
+            >
+              More pictures will be added as we gather the rest of our favorite moments. Please check back — this gallery is still growing.
+            </p>
           </>
         )}
       </div>

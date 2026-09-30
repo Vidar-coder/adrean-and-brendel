@@ -6,7 +6,7 @@ const siteUrl =
   "https://sunshyne-and-brandon.vercel.app/"
 const canonicalBase = siteUrl.replace(/\/$/, "")
 
-export const PROPOSAL_OG_IMAGE_PATH = "/image/LinkPreview.png"
+export const PROPOSAL_OG_IMAGE_PATH = "/Details/LinkPreview.png"
 export const PROPOSAL_OG_IMAGE_URL = `${canonicalBase}${PROPOSAL_OG_IMAGE_PATH}`
 
 const coupleNames = `${siteConfig.couple.groomNickname} & ${siteConfig.couple.brideNickname}`

@@ -11,8 +11,8 @@ import { anastasiaScript } from "@/lib/fonts"
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sunshyne-and-brandon.vercel.app/"
 const canonicalUrl = siteUrl.replace(/\/$/, "")
-  const desktopHero = "/image/LinkPreview.png"
-const mobileHero = "/image/LinkPreview.png"
+  const desktopHero = "/Details/LinkPreview.png"
+const mobileHero = "/Details/LinkPreview.png"
 const eventImageUrl = `${canonicalUrl}${desktopHero}`
 const OG_IMAGE_FALLBACK = `${canonicalUrl}${desktopHero}`
 

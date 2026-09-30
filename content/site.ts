@@ -5,12 +5,12 @@ import {
 
 export const siteConfig = {
   couple: {
-    bride: "Sunshyne", //Noenyl Bryle M. Gonzaga
-    brideNickname: "Sunshyne", //Ltryl
-    groom: "Brandon", //Ltryl B. Benitez
-    groomNickname: "Brandon",
-    monogram:"/image/beauty-and-beast.png" ,//Ltryl
-    backgroundMusic:"/background_music/BEAUTY AND THE BEAST CELLO COVER.mp3"
+    bride: "Brendel", //Noenyl Bryle M. Gonzaga
+    brideNickname: "Brendel", //Ltryl
+    groom: "Adrean", //Ltryl B. Benitez
+    groomNickname: "Adrean",
+    monogram:"/image/monogram.png" ,//Ltryl
+    backgroundMusic:"/background_music/APO Hiking Society - Panalangin (Official Lyric Video).mp3"
   },
   googleAPI:{
     messageForm: "https://docs.google.com/forms/d/e/1FAIpQLSfnnT3Az9zCbJk9vxa_20FMwYj1n_-17uDqHYHS27rj9eon5Q/formResponse",   //done
@@ -25,9 +25,9 @@ export const siteConfig = {
       "https://docs.google.com/forms/d/e/1FAIpQLSfeGlEl4CMXWefdvCw6AOPHFS1ROku_rs-Gbofa2LkVJ0sLGQ/viewform", 
   },
   wedding: {
-    date: "August 14, 2027",
-    time: "9:30 AM",
-    venue: "Davao City",
+    date: "June 5, 2027",
+    time: "3:00 PM",
+    venue: "San Bartolome Parish Church",
     tagline: "are getting married!!!!!",
     theme: "Whimsical Spring Minimalist",
     motif: "#FFCA8B, #FFB383, #F6CEC8, #E99997, #C8C29E",
@@ -40,7 +40,7 @@ export const siteConfig = {
   },
   details: {
     rsvp: {
-      deadline: "October 19, 2026",
+      deadline: "May 31, 2027",
       coordinator: "Jonna / Ricky",
       phone: "to be announced",
     },
@@ -72,23 +72,23 @@ export const siteConfig = {
     // }
   },
   ceremony: {
-    location: "Davao City",
-    venue: "Ayala Westgrove Heights, South Blvd, Silang, 4118 Cavite, Philippines",
-    map: "https://maps.app.goo.gl/yRMLmsfaZwjEWzy36",
-    date: "August 14, 2027",
-    day: "Thursday",
-    time: "9:30 AM",
-    entourageTime: "8:00 AM",
-    guestsTime: "9:00 AM",
+    location: "San Bartolome Parish Church",
+    venue: "Lacson St, Magalang, Pampanga, Philippines",
+    map: "https://maps.app.goo.gl/8w9Z39WCP4p7RjJd6",
+    date: "June 5, 2027",
+    day: "Saturday",
+    time: "3:00 PM",
+    entourageTime: "2:00 PM",
+    guestsTime: "2:30 PM",
     image: ["/Details/ceremony (1).jpg", "/Details/ceremony (2).jpg","/Details/ceremony3.webp"],
   },
   reception: {
-    location: "Davao City",
-    venue: "Davao City",
-    map: "https://maps.app.goo.gl/5ydREXRam4A1zcyT9",
-    date: "August 14, 2027",
-    day: "Thursday",
-    time: "12:00 noon",
+    location: "Rooktop Event Hall & Resort",
+    venue: "San Pablo, Magalang, 2011 Pampanga, Philippines",
+    map: "https://maps.app.goo.gl/25rg2xVft55rQXvs7",
+    date: "June 5, 2027",
+    day: "Saturday",
+    time: "6:00 PM",
     image: ["/Details/reception7.png", "/Details/reception2.png","/Details/reception3.png","/Details/reception4.png","/Details/reception5.png", "/Details/reception6.png"],
   },
   dressCode: {

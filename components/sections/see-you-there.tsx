@@ -19,8 +19,8 @@ const theSeasons = localFont({
 const IVORY = "#fffaf4"
 const entryEase = [0.22, 1, 0.36, 1] as const
 
-const MOBILE_PHOTO = encodeURI("/mobile-background/couples (14).webp")
-const DESKTOP_PHOTO = encodeURI("/desktop-background/couples (34).webp")
+const MOBILE_PHOTO = encodeURI("/mobile-background/couple (5).webp")
+const DESKTOP_PHOTO = encodeURI("/mobile-background/couple (5).webp")
 
 const titleSize = "clamp(2.85rem, 13.5vw, 6.75rem)"
 const titleShadow =

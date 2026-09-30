@@ -1,6 +1,15 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo, Suspense, type CSSProperties, type ReactNode } from "react"
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+  type CSSProperties,
+  type ReactNode,
+} from "react"
+import { useSearchParams } from "next/navigation"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import Image from "next/image"
@@ -10,23 +19,28 @@ import {
   Check,
   X,
   Sparkles,
+  MapPin,
 } from "lucide-react"
 import localFont from "next/font/local"
 import { Cinzel, Playfair_Display } from "next/font/google"
 import { useSiteConfig } from "@/hooks/use-site-config"
 import { Hero as InvitationHero } from "@/components/loader/Hero"
 import { LoadingScreen } from "@/components/loader/LoadingScreen"
-import { getRoleSingular } from "@/lib/proposal-roles"
+import { InvitePhotoBackdrop } from "@/components/loader/invite-photo-backdrop"
 import { parseWeddingDate } from "@/lib/wedding-date"
 import { sectionType, welcomeTitleSize } from "@/lib/section-typography"
+import { sectionBackground } from "@/lib/section-background"
 import { siteConfig as defaultSiteConfig } from "@/content/site"
-import type { ProposalRole, ProposalResponse } from "@/lib/proposal-types"
+import type { ProposalRole } from "@/lib/proposal-types"
+import { parseInviteeNameFromSearchParams } from "@/lib/proposal-invite-link"
 
 const Silk = dynamic(() => import("@/components/silk"), { ssr: false })
 
 const proposalEntryEase = [0.22, 1, 0.36, 1] as const
 const CINEMATIC_ENTRY_MS = 3000
-const BEIGE = "#f6efe4"
+
+const CORNER_DECO_CLASS =
+  "block h-auto w-auto max-w-[52px] min-[380px]:max-w-[60px] sm:max-w-[130px] md:max-w-[185px] lg:max-w-[220px] select-none pointer-events-none opacity-90 sm:opacity-100"
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -52,17 +66,18 @@ const aboveTheBeyond = localFont({
 })
 
 const IVORY = "#fffaf4"
-const CHAMPAGNE = "#E8D5A3"
-const GOLD_BRIGHT = "#d4af37"
-const INK = "#2a221c"
-const CREAM = "#3d3228"
-const LABEL_GOLD = "#8a6414"
-const GOLD_BORDER = "color-mix(in srgb, #d4af37 45%, transparent)"
-const GOLD_BORDER_SOFT = "color-mix(in srgb, #d4af37 28%, transparent)"
+const CHAMPAGNE = "var(--color-welcome-gold)"
+const GOLD_BRIGHT = "var(--color-welcome-gold)"
+const INK = "var(--color-welcome-navy)"
+const CREAM = "var(--color-welcome-text)"
+const LABEL_GOLD = "var(--color-welcome-heading)"
+const SCRIPT_GREEN = "var(--color-welcome-green)"
+const GOLD_BORDER = "color-mix(in srgb, var(--color-welcome-gold) 38%, transparent)"
+const GOLD_BORDER_SOFT = "color-mix(in srgb, var(--color-welcome-gold) 22%, transparent)"
 
 const goldGradientText: CSSProperties = {
   background:
-    "linear-gradient(168deg, #7a5810 0%, #5c400c 42%, #3d2a06 100%)",
+    "linear-gradient(168deg, var(--color-welcome-navy) 0%, var(--color-welcome-heading) 55%, color-mix(in srgb, var(--color-welcome-green) 70%, var(--color-welcome-navy)) 100%)",
   WebkitBackgroundClip: "text",
   backgroundClip: "text",
   color: "transparent",
@@ -70,26 +85,29 @@ const goldGradientText: CSSProperties = {
 
 const palette = {
   body: CREAM,
-  bodySoft: "#4a3c30",
+  bodySoft: "var(--color-welcome-text-soft)",
   heading: INK,
   label: LABEL_GOLD,
-  accent: LABEL_GOLD,
-  script: CHAMPAGNE,
+  accent: GOLD_BRIGHT,
+  script: SCRIPT_GREEN,
 } as const
 
 const BORDER_SOFT = GOLD_BORDER_SOFT
-const INNER_SURFACE = "#efe4d2"
+const INNER_SURFACE = "var(--color-welcome-bg-soft)"
 
 const ambientGlowStyle = {
-  background: `radial-gradient(ellipse 80% 65% at 50% 50%, color-mix(in srgb, ${GOLD_BRIGHT} 28%, transparent), transparent 68%)`,
+  background:
+    "radial-gradient(ellipse 80% 65% at 50% 50%, color-mix(in srgb, var(--color-welcome-gold) 18%, transparent), transparent 68%)",
 } as const
 
 const dividerLineStyle = {
-  background: "linear-gradient(to right, transparent, rgb(212 175 55 / 70%), transparent)",
+  background:
+    "linear-gradient(to right, transparent, color-mix(in srgb, var(--color-welcome-gold) 65%, transparent), transparent)",
 } as const
 
 const coupleLabelLineStyle = {
-  background: "linear-gradient(to right, transparent, rgb(212 175 55 / 70%))",
+  background:
+    "linear-gradient(to right, transparent, color-mix(in srgb, var(--color-welcome-gold) 65%, transparent))",
 } as const
 
 const nameStyle: CSSProperties = {
@@ -98,28 +116,29 @@ const nameStyle: CSSProperties = {
 }
 
 const cardStyle: CSSProperties = {
-  background: BEIGE,
+  background: IVORY,
   borderColor: GOLD_BORDER,
   borderWidth: "1px",
   borderStyle: "solid",
   boxShadow:
-    "0 18px 48px rgb(42 34 28 / 18%), inset 0 1px 0 rgb(255 250 244 / 80%)",
+    "0 10px 28px color-mix(in srgb, var(--color-welcome-gold) 12%, transparent), inset 0 1px 0 rgb(255 250 244 / 70%)",
 }
 
 const primaryBtnStyle: CSSProperties = {
   fontWeight: 600,
-  background: "linear-gradient(180deg, #fff8dc 0%, #f5d76e 42%, #c9a227 100%)",
-  borderColor: "color-mix(in srgb, #fff8dc 60%, #d4af37)",
+  background:
+    "linear-gradient(180deg, var(--color-welcome-blush) 0%, var(--color-welcome-gold) 48%, color-mix(in srgb, var(--color-welcome-heading) 35%, var(--color-welcome-gold)) 100%)",
+  borderColor: GOLD_BORDER,
   color: INK,
-  boxShadow: "0 8px 22px color-mix(in srgb, #d4af37 34%, transparent)",
+  boxShadow: "0 8px 22px color-mix(in srgb, var(--color-welcome-gold) 28%, transparent)",
 }
 
 const secondaryBtnStyle: CSSProperties = {
   fontWeight: 600,
   color: INK,
-  backgroundColor: BEIGE,
-  borderColor: GOLD_BORDER,
-  boxShadow: "0 0 24px color-mix(in srgb, #d4af37 16%, transparent)",
+  backgroundColor: "color-mix(in srgb, var(--color-welcome-bg-soft) 85%, transparent)",
+  borderColor: GOLD_BORDER_SOFT,
+  boxShadow: "none",
 }
 
 const labelStyle = (color: string, extra?: CSSProperties): CSSProperties => ({
@@ -129,15 +148,38 @@ const labelStyle = (color: string, extra?: CSSProperties): CSSProperties => ({
   ...extra,
 })
 
+function ProposalCornerDecorations() {
+  return (
+    <>
+      <div className="pointer-events-none absolute left-0 top-0 z-[5]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/deco/left-top-deco.png" alt="" aria-hidden className={CORNER_DECO_CLASS} />
+      </div>
+      <div className="pointer-events-none absolute right-0 top-0 z-[5]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/deco/right-top-deco.png" alt="" aria-hidden className={CORNER_DECO_CLASS} />
+      </div>
+      <div className="pointer-events-none absolute bottom-0 left-0 z-[5]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/deco/left-bottom-deco.png" alt="" aria-hidden className={CORNER_DECO_CLASS} />
+      </div>
+      <div className="pointer-events-none absolute bottom-0 right-0 z-[5]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/deco/right-bottom-deco.png" alt="" aria-hidden className={CORNER_DECO_CLASS} />
+      </div>
+    </>
+  )
+}
+
 function OrnamentalDivider({ compact = false }: { compact?: boolean }) {
   return (
     <div
       className={`mx-auto flex items-center justify-center gap-2 ${compact ? "max-w-[10rem]" : "max-w-xs sm:max-w-sm"}`}
       aria-hidden
     >
-      <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/70 to-transparent" />
-      <span className="h-1 w-1 rotate-45 bg-[#d4af37]" />
-      <span className="h-px flex-1 bg-gradient-to-l from-transparent via-[#d4af37]/70 to-transparent" />
+      <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[color-mix(in_srgb,var(--color-welcome-gold)_65%,transparent)] to-transparent" />
+      <span className="h-1 w-1 rotate-45 bg-[var(--color-welcome-gold)]" />
+      <span className="h-px flex-1 bg-gradient-to-l from-transparent via-[color-mix(in_srgb,var(--color-welcome-gold)_65%,transparent)] to-transparent" />
     </div>
   )
 }
@@ -153,7 +195,7 @@ function CoupleLabel({ groom, bride }: { groom: string; bride: string }) {
         {groom}
         <span
           className={`${aboveTheBeyond.className} mx-2 inline-block text-[clamp(1.15rem,4.2vw,1.5rem)] normal-case tracking-normal`}
-          style={{ color: "#8a6840", verticalAlign: "middle" }}
+          style={{ color: SCRIPT_GREEN, verticalAlign: "middle" }}
           aria-hidden
         >
           &
@@ -163,7 +205,8 @@ function CoupleLabel({ groom, bride }: { groom: string; bride: string }) {
       <span
         className="h-px w-5 sm:w-7 md:w-9"
         style={{
-          background: "linear-gradient(to left, transparent, rgb(212 175 55 / 70%))",
+          background:
+            "linear-gradient(to left, transparent, color-mix(in srgb, var(--color-welcome-gold) 65%, transparent))",
         }}
         aria-hidden
       />
@@ -212,7 +255,7 @@ function LayeredProposalTitle({
         style={{
           marginTop: "var(--script-overlap)",
           fontSize: "var(--script-size)",
-          color: "#5c4014",
+          color: SCRIPT_GREEN,
         }}
       >
         {script}
@@ -293,7 +336,7 @@ function ProposalFlowBody({
 }) {
   return (
     <p
-      className={`${playfair.className} mx-auto max-w-lg italic ${sectionType.textRelaxed} ${className}`}
+      className={`font-goudy-italic mx-auto max-w-lg ${sectionType.textRelaxed} ${className}`}
       style={{ color: palette.body }}
     >
       {children}
@@ -314,9 +357,7 @@ function ProposalDateBlock({
   time: string
   year: string
 }) {
-  const dateLineStyle = {
-    background: "linear-gradient(to right, transparent, rgb(212 175 55 / 70%), transparent)",
-  } as const
+  const dateLineStyle = dividerLineStyle
 
   return (
     <div className="mx-auto w-full max-w-2xl">
@@ -435,10 +476,10 @@ function CoupleNameImage({
 }) {
   return (
     <div
-      className={`relative mx-auto aspect-[528/473] w-full max-w-[min(88vw,18rem)] sm:max-w-xs md:max-w-sm ${className}`}
+      className={`relative mx-auto aspect-[4/5] w-full max-w-[min(88vw,16rem)] sm:max-w-[14rem] md:max-w-xs ${className}`}
     >
       <Image
-        src="/Details/couplename.png"
+        src="/deco/coupleimage.png"
         alt={`${groom} and ${bride}`}
         fill
         className="object-contain drop-shadow-[0_10px_28px_rgba(45,67,79,0.14)]"
@@ -453,22 +494,50 @@ function DividerLine({ className = "w-16 sm:w-24 md:w-32" }: { className?: strin
   return <span className={`h-px ${className}`} style={dividerLineStyle} aria-hidden />
 }
 
+function ProposalPageHeader() {
+  return (
+    <header className="relative z-10 mb-4 w-full px-1 text-center sm:mb-8 sm:px-0 md:mb-10">
+      <OrnamentalDivider />
+      <p
+        className={`${cinzel.className} mx-auto mt-3 max-w-md text-[0.5625rem] font-semibold uppercase tracking-[0.18em] sm:mt-5 sm:text-[0.6875rem] sm:tracking-[0.26em] md:text-xs`}
+        style={{ color: palette.label }}
+      >
+        A Personal Invitation
+      </p>
+      <p
+        className={`${aboveTheBeyond.className} mx-auto mt-1.5 block text-[clamp(0.95rem,4.5vw,1.45rem)] leading-none sm:mt-2`}
+        style={{ color: SCRIPT_GREEN }}
+      >
+        from our hearts to yours
+      </p>
+      <div className="mx-auto mt-3 flex justify-center sm:mt-5">
+        <DividerLine className="w-16 sm:w-28" />
+      </div>
+    </header>
+  )
+}
+
 function ProposalCard({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`relative w-full ${className}`}>
+    <div className={`relative mx-auto w-full max-w-2xl ${className}`}>
       <div className="relative">
         <div
-          className="pointer-events-none absolute -inset-1 rounded-2xl opacity-50 blur-2xl sm:-inset-2"
+          className="pointer-events-none absolute -inset-2 rounded-[1.35rem] opacity-60 blur-2xl sm:-inset-3"
           style={ambientGlowStyle}
           aria-hidden
         />
         <div
-          className="relative overflow-hidden rounded-xl border sm:rounded-2xl"
+          className="relative overflow-hidden rounded-2xl border sm:rounded-[1.35rem]"
           style={cardStyle}
         >
+          <div
+            className="pointer-events-none absolute inset-2 rounded-xl sm:inset-4 sm:rounded-[1.15rem]"
+            style={{ border: `1px solid ${GOLD_BORDER_SOFT}` }}
+            aria-hidden
+          />
           <div className="wedding-frame-inner hidden min-[400px]:block" aria-hidden />
 
-          <div className="relative z-20 p-6 text-center sm:p-10 md:p-12 md:py-14 lg:p-14 lg:py-16">
+          <div className="relative z-20 px-4 py-6 text-center sm:px-9 sm:py-11 md:px-12 md:py-14">
             {children}
           </div>
         </div>
@@ -477,200 +546,267 @@ function ProposalCard({ children, className = "" }: { children: ReactNode; class
   )
 }
 
-function ProposalIntroSection() {
+function ProposalPersonalLetter({
+  inviteeName,
+  roleTitle,
+}: {
+  inviteeName: string
+  roleTitle: string
+}) {
   const siteConfig = useSiteConfig()
-
-  const groomNickname = siteConfig.couple.groomNickname || siteConfig.couple.groom
-  const brideNickname = siteConfig.couple.brideNickname || siteConfig.couple.bride
+  const groom = siteConfig.couple.groomNickname || siteConfig.couple.groom
+  const bride = siteConfig.couple.brideNickname || siteConfig.couple.bride
   const ceremonyDate =
     siteConfig.ceremony.date ?? siteConfig.wedding.date ?? defaultSiteConfig.ceremony.date
-  const parsedDate = useMemo(
-    () => parseWeddingDate(ceremonyDate, parseWeddingDate(defaultSiteConfig.ceremony.date)),
-    [ceremonyDate],
-  )
-  const ceremonyDayShort = (
-    siteConfig.ceremony.day ?? parsedDate.dayOfWeek ?? defaultSiteConfig.ceremony.day
-  )
-    .slice(0, 3)
-    .toUpperCase()
+  const ceremonyDay = siteConfig.ceremony.day ?? defaultSiteConfig.ceremony.day
   const ceremonyTime =
     siteConfig.ceremony.time ?? siteConfig.wedding.time ?? defaultSiteConfig.ceremony.time
-  const { month, day: dateNum, year } = parsedDate
-  const venue =
-    siteConfig.wedding.venue ?? siteConfig.ceremony.location ?? defaultSiteConfig.ceremony.location
+  const venueName = siteConfig.ceremony.location ?? defaultSiteConfig.ceremony.location
+  const venueDetail = siteConfig.ceremony.venue ?? defaultSiteConfig.ceremony.venue
+  const greetingName = inviteeName.trim() || "Friend"
 
   return (
     <div
-      className="mx-auto w-full max-w-xl space-y-5 text-center sm:space-y-6 md:space-y-7"
+      className="mx-auto w-full max-w-lg space-y-5 text-center sm:space-y-7"
       style={{ color: palette.body, WebkitFontSmoothing: "antialiased" }}
     >
-      <header className="space-y-3 px-1 sm:space-y-3.5 sm:px-2 md:space-y-4">
-        <CoupleLabel groom={groomNickname} bride={brideNickname} />
-        <ProposalPersonalInvitationTitle />
-        <div className="pt-2 sm:pt-2.5">
-          <OrnamentalDivider compact />
-        </div>
-      </header>
-
-      <div
-        className={`${playfair.className} italic mx-auto max-w-xl space-y-3 px-1 text-pretty sm:space-y-3.5 sm:px-2 ${sectionType.textRelaxed}`}
-        style={{ color: palette.body }}
-      >
-        <p>
-          As we prepare for our wedding day, we keep coming back to the people who have meant the
-          most to us — and you are one of them.
+      <div className="space-y-2">
+        <p
+          className={`${theSeasons.className} text-[clamp(1.2rem,5.5vw,1.85rem)] leading-tight tracking-[0.05em] [overflow-wrap:anywhere]`}
+          style={{ color: INK }}
+        >
+          Dear {greetingName},
         </p>
-        <p>
-          This is not a general invitation. It is a personal ask, from our hearts to yours: we would
-          love for you to be part of our celebration in a way that is truly special.
-        </p>
-      </div>
-
-      <p
-        className={`${cinzel.className} ${sectionType.label} font-semibold uppercase tracking-[0.14em] sm:tracking-[0.18em] md:tracking-[0.22em]`}
-        style={{ color: palette.label }}
-      >
-        Our wedding day
-      </p>
-
-      {/* <CoupleNameImage groom={groomNickname} bride={brideNickname} className="my-1 sm:my-2" /> */}
-
-      <ProposalDateBlock
-        month={month}
-        dayShort={ceremonyDayShort}
-        dayNumber={dateNum}
-        time={ceremonyTime}
-        year={year}
-      />
-
-      <p
-        className={`${cinzel.className} text-[0.58rem] font-medium uppercase leading-relaxed tracking-[0.18em] sm:text-[0.65rem] sm:tracking-[0.22em]`}
-        style={{ color: INK }}
-      >
-        {venue}
-      </p>
-
-      <div className="pt-1 sm:pt-2">
         <OrnamentalDivider compact />
       </div>
+
+      <div
+        className={`font-goudy-italic mx-auto max-w-md space-y-3 text-pretty text-[0.9375rem] leading-relaxed sm:space-y-3.5 sm:text-base ${sectionType.textRelaxed}`}
+      >
+        <p>We have some wonderful news that we would love to share with you.</p>
+        <p>
+          We are happy and excited to announce that we are getting married and will be beginning a
+          new chapter of our lives together.
+        </p>
+      </div>
+
+      <div
+        className="relative mx-auto max-w-md overflow-hidden rounded-xl border px-4 py-5 sm:px-7 sm:py-7"
+        style={{ background: INNER_SURFACE, borderColor: BORDER_SOFT }}
+      >
+        <div
+          className="pointer-events-none absolute inset-2 rounded-lg"
+          style={{ border: `1px solid ${GOLD_BORDER_SOFT}` }}
+          aria-hidden
+        />
+        <p
+          className={`${cinzel.className} relative text-[0.62rem] font-semibold uppercase tracking-[0.32em] sm:text-[0.68rem]`}
+          style={{ color: palette.label }}
+        >
+          Save the Date
+        </p>
+        <p
+          className={`${theSeasons.className} relative mt-3 text-[clamp(1.2rem,4.2vw,1.55rem)] tracking-[0.1em] uppercase`}
+          style={{ color: INK }}
+        >
+          {groom}
+          <span
+            className={`${aboveTheBeyond.className} mx-2 inline-block text-[1.2em] normal-case tracking-normal`}
+            style={{ color: SCRIPT_GREEN }}
+            aria-hidden
+          >
+            &
+          </span>
+          {bride}
+        </p>
+        <div
+          className={`${cinzel.className} relative mt-3 space-y-1 text-[0.625rem] font-medium tracking-[0.1em] sm:space-y-0 sm:text-xs sm:tracking-[0.14em]`}
+          style={{ color: palette.bodySoft }}
+        >
+          <p className="sm:inline">
+            {ceremonyDate}
+            <span className="mx-1.5 hidden opacity-40 sm:inline" aria-hidden>
+              ·
+            </span>
+          </p>
+          <p className="sm:inline">
+            {ceremonyDay}
+            <span className="mx-1.5 hidden opacity-40 sm:inline" aria-hidden>
+              ·
+            </span>
+            {ceremonyTime}
+          </p>
+        </div>
+        <p
+          className={`font-goudy-italic relative mx-auto mt-3 flex max-w-sm items-start justify-center gap-1.5 text-center text-[0.8125rem] leading-relaxed sm:text-sm`}
+        >
+          <MapPin
+            className="mt-0.5 h-3.5 w-3.5 shrink-0 sm:mt-1"
+            style={{ color: palette.label }}
+            aria-hidden
+          />
+          <span>
+            {venueName}
+            {venueDetail ? `, ${venueDetail}` : ""}
+          </span>
+        </p>
+      </div>
+
+      <div
+        className={`font-goudy-italic mx-auto max-w-md space-y-3 text-pretty text-[0.9375rem] leading-relaxed sm:space-y-3.5 sm:text-base ${sectionType.textRelaxed}`}
+      >
+        <p>
+          <span className="not-italic" style={{ color: INK }}>
+            But this isn&apos;t just a save-the-date.
+          </span>{" "}
+          This is a personal ask, especially meant for you.
+        </p>
+        <p>
+          As we imagine our wedding day, we find ourselves thinking about the people we would want
+          beside us as we celebrate one of the biggest moments of our lives.
+        </p>
+        <p>
+          You are someone we would genuinely love to have there — not just as a guest, but as
+          someone who will stand beside us, celebrate with us, laugh with us, and share in the
+          memories we will carry for years to come.
+        </p>
+      </div>
+
+      {inviteeName.trim() ? (
+        <div
+          className="mx-auto grid max-w-md grid-cols-1 gap-px overflow-hidden rounded-xl border sm:grid-cols-2"
+          style={{ borderColor: BORDER_SOFT, background: GOLD_BORDER_SOFT }}
+        >
+          <div className="px-3.5 py-3.5 sm:px-4 sm:py-5" style={{ background: IVORY }}>
+            <p
+              className={`${cinzel.className} text-[0.55rem] font-semibold uppercase tracking-[0.2em] sm:text-[0.6rem]`}
+              style={{ color: palette.label }}
+            >
+              Role offered
+            </p>
+            <p
+              className={`${theSeasons.className} mt-1.5 text-[0.9375rem] tracking-wide [overflow-wrap:anywhere] sm:mt-2 sm:text-lg`}
+              style={{ color: INK }}
+            >
+              {roleTitle}
+            </p>
+          </div>
+          <div
+            className="border-t px-3.5 py-3.5 sm:border-t-0 sm:border-l sm:px-4 sm:py-5"
+            style={{ background: IVORY, borderColor: BORDER_SOFT }}
+          >
+            <p
+              className={`${cinzel.className} text-[0.55rem] font-semibold uppercase tracking-[0.2em] sm:text-[0.6rem]`}
+              style={{ color: palette.label }}
+            >
+              Prepared for
+            </p>
+            <p
+              className={`${theSeasons.className} mt-1.5 text-[0.9375rem] tracking-wide [overflow-wrap:anywhere] sm:mt-2 sm:text-lg`}
+              style={{ color: SCRIPT_GREEN }}
+            >
+              {inviteeName.trim()}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      <p
+        className={`${cinzel.className} text-[0.65rem] font-semibold uppercase tracking-[0.16em] sm:text-xs sm:tracking-[0.2em]`}
+        style={{ color: palette.label }}
+      >
+        So, with all our hearts, we would like to ask you
+      </p>
     </div>
   )
 }
 
 const primaryBtnClass =
-  `${cinzel.className} cursor-pointer rounded-full border px-5 py-3 text-[0.65rem] font-semibold uppercase tracking-[0.2em] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 sm:px-7 sm:py-3.5 sm:text-xs sm:tracking-[0.24em] md:px-8 md:py-4 md:tracking-[0.28em]`
+  `${cinzel.className} touch-manipulation cursor-pointer rounded-full border px-4 py-3.5 text-[0.58rem] font-semibold uppercase leading-snug tracking-[0.12em] transition-all duration-300 active:scale-[0.98] disabled:opacity-50 sm:px-7 sm:py-3.5 sm:text-xs sm:tracking-[0.22em] sm:hover:scale-[1.02] md:px-8 md:py-4 md:tracking-[0.26em]`
 
 const secondaryBtnClass =
-  `${cinzel.className} cursor-pointer rounded-full border px-5 py-3 text-[0.65rem] font-semibold uppercase tracking-[0.2em] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] sm:px-7 sm:py-3.5 sm:text-xs sm:tracking-[0.24em] md:px-8 md:py-4 md:tracking-[0.28em]`
+  `${cinzel.className} touch-manipulation cursor-pointer rounded-full border px-4 py-3 text-[0.55rem] font-semibold uppercase leading-snug tracking-[0.1em] transition-all duration-300 active:scale-[0.98] sm:px-7 sm:py-3.5 sm:text-[0.65rem] sm:tracking-[0.18em] sm:hover:scale-[1.02] md:px-8 md:py-4 md:tracking-[0.22em]`
 
 function ProposalAskSection({
-  roleSingular,
-  description,
-  coAttendants,
+  roleTitle,
+  submitting,
   onYes,
   onNo,
 }: {
-  roleSingular: string
-  description: string
-  coAttendants: string[]
+  roleTitle: string
+  submitting?: boolean
   onYes: () => void
   onNo: () => void
 }) {
   return (
-    <div className="relative mx-auto mt-0 w-full sm:mt-10">
-      {/* {coAttendants.length > 0 && (
+    <div
+      className="relative mx-auto mt-1 w-full max-w-lg rounded-xl border px-3 py-5 sm:mt-4 sm:rounded-2xl sm:px-7 sm:py-9"
+      style={{ borderColor: BORDER_SOFT, background: "color-mix(in srgb, var(--color-welcome-bg-soft) 55%, transparent)" }}
+    >
+      <div className="mb-6 flex justify-center">
+        <DividerLine className="w-full max-w-[12rem]" />
+      </div>
+
+      <div className="relative mx-auto mb-4 h-[9.5rem] w-[6rem] sm:mb-7 sm:h-[13.5rem] sm:w-[8.5rem]">
         <div
-          className="mx-auto mb-8 max-w-lg space-y-3 rounded-xl px-5 py-4 text-center sm:px-6 sm:py-5"
-          style={{ border: `1px solid ${BORDER_SOFT}`, backgroundColor: INNER_SURFACE }}
-        >
-          <div
-            className={`${cinzel.className} flex items-center justify-center gap-2 text-[10px] font-semibold tracking-[0.2em] uppercase sm:text-xs`}
-            style={labelStyle(palette.label)}
-          >
-            <Sparkles className="h-3.5 w-3.5 shrink-0" />
-            <span>Co-members standing in this position</span>
-          </div>
-          <div className="flex flex-wrap justify-center gap-2">
-            {coAttendants.map((name, idx) => (
-              <span
-                key={idx}
-                className="italic rounded-full px-3 py-1 text-xs shadow-sm"
-                style={{ color: palette.body, border: `1px solid ${BORDER_SOFT}`, backgroundColor: "var(--color-welcome-bg)" }}
-              >
-                {name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )} */}
+          className="absolute -inset-2 rounded-full opacity-70 blur-xl"
+          style={ambientGlowStyle}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{ border: `1px solid ${GOLD_BORDER_SOFT}` }}
+          aria-hidden
+        />
+        <Image
+          src="/deco/coupleimage.png"
+          alt="The couple"
+          fill
+          className="object-contain object-bottom drop-shadow-[0_14px_32px_color-mix(in_srgb,var(--color-welcome-navy)_10%,transparent)]"
+          sizes="136px"
+          priority
+        />
+      </div>
 
-      <div
-        className="relative pt-2 sm:pt-12"
+      <h2
+        className={`${theSeasons.className} mx-auto max-w-md text-[clamp(1.1rem,5.2vw,1.75rem)] leading-snug tracking-[0.03em] sm:tracking-[0.04em]`}
+        style={{ color: INK }}
       >
-        <div className="mb-6 flex items-center justify-center sm:mb-8">
-          <DividerLine className="w-full max-w-md" />
-        </div>
-        <div className="relative mt-8 flex flex-col gap-5 sm:mt-10">
-          <div className="relative z-10 min-w-0 flex-1 text-center sm:text-left">
-            <div className="mx-auto flex w-full max-w-xl items-center gap-3 sm:gap-6">
-              <div className="min-w-0 flex-1 space-y-5 sm:space-y-6">
-                <ProposalRoleTitle roleSingular={roleSingular} />
+        Will you be our{" "}
+        <span className="block pt-0.5 capitalize [overflow-wrap:anywhere] sm:pt-1" style={goldGradientText}>
+          {roleTitle}?
+        </span>
+      </h2>
 
-                <p
-                  className={`${playfair.className} italic mx-auto max-w-lg ${sectionType.textRelaxed} sm:text-left`}
-                  style={{ color: palette.body }}
-                >
-                  &ldquo;{description}&rdquo;
-                </p>
-              </div>
+      <p
+        className={`font-goudy-italic mx-auto mt-3 max-w-md text-[0.9375rem] leading-relaxed sm:mt-4 sm:text-base ${sectionType.textRelaxed}`}
+        style={{ color: palette.body }}
+      >
+        We know that being part of the wedding party comes with time, effort, and a little bit of
+        responsibility. More than anything, we hope it will be a chance for us to celebrate this
+        beautiful moment together.
+      </p>
 
-              <div className="relative h-[9.5rem] w-[5.75rem] shrink-0 sm:h-64 sm:w-40 md:h-72 md:w-48">
-                <Image
-                  src="/image/couple-image.png"
-                  alt=""
-                  fill
-                  className="object-contain object-bottom drop-shadow-[0_16px_32px_rgba(42,37,32,0.18)]"
-                  sizes="(max-width: 640px) 92px, 192px"
-                  priority
-                />
-              </div>
-            </div>
-
-            <div className="clear-both mt-10 hidden w-full flex-row gap-3 sm:mt-12 sm:flex sm:max-w-md md:mt-14">
-              <button
-                onClick={onYes}
-                className={`${primaryBtnClass} min-w-0 flex-1`}
-                style={primaryBtnStyle}
-              >
-                Yes, I&apos;d Be Honored
-              </button>
-              <button
-                onClick={onNo}
-                className={`${secondaryBtnClass} min-w-0 flex-1`}
-                style={secondaryBtnStyle}
-              >
-                Regretfully Decline
-              </button>
-            </div>
-          </div>
-
-          <div className="flex w-full flex-row gap-2.5 sm:hidden">
-            <button
-              onClick={onYes}
-              className={`${primaryBtnClass} min-h-11 min-w-0 flex-1 px-4 py-3.5`}
-              style={primaryBtnStyle}
-            >
-              Yes
-            </button>
-            <button
-              onClick={onNo}
-              className={`${secondaryBtnClass} min-h-11 min-w-0 flex-1 px-4 py-3.5`}
-              style={secondaryBtnStyle}
-            >
-              Decline
-            </button>
-          </div>
-        </div>
+      <div className="mx-auto mt-6 flex w-full max-w-sm flex-col gap-2 sm:mt-9 sm:gap-2.5">
+        <button
+          type="button"
+          disabled={submitting}
+          onClick={onYes}
+          className={`${primaryBtnClass} min-h-12 w-full`}
+          style={primaryBtnStyle}
+        >
+          {submitting ? "Saving..." : "Yes, I'd Love To!"}
+        </button>
+        <button
+          type="button"
+          disabled={submitting}
+          onClick={onNo}
+          className={`${secondaryBtnClass} min-h-11 w-full`}
+          style={secondaryBtnStyle}
+        >
+          <span className="sm:hidden">No, With Love</span>
+          <span className="hidden sm:inline">No, With Love & Warm Wishes</span>
+        </button>
       </div>
     </div>
   )
@@ -687,12 +823,17 @@ interface ProposalPageProps {
   role: ProposalRole
 }
 
-export function ProposalPage({ role }: ProposalPageProps) {
+function ProposalPageInner({ role }: ProposalPageProps) {
+  const searchParams = useSearchParams()
+  const inviteeFromLink = useMemo(
+    () => parseInviteeNameFromSearchParams(searchParams),
+    [searchParams],
+  )
+
   const [flowState, setFlowState] = useState<ProposalFlowState>("question")
   const [preferredName, setPreferredName] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [validationError, setValidationError] = useState("")
-  const [responses, setResponses] = useState<ProposalResponse[]>([])
   const [showInvitation, setShowInvitation] = useState(false)
   const [loadingOverlayVisible, setLoadingOverlayVisible] = useState(true)
   const [heroEnterFromLoading, setHeroEnterFromLoading] = useState(false)
@@ -724,15 +865,15 @@ export function ProposalPage({ role }: ProposalPageProps) {
   const cinematicEntry = enteringFromInvite && proposalVisible
 
   useEffect(() => {
-    fetch("/api/proposal-responses", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => setResponses(Array.isArray(data) ? data : []))
-      .catch(() => setResponses([]))
-  }, [])
+    if (inviteeFromLink) {
+      setPreferredName(inviteeFromLink)
+    }
+  }, [inviteeFromLink])
 
-  const coAttendants = responses
-    .filter((r) => r.role === role.id && r.status === "Confirmed")
-    .map((r) => r.name || "A Secret Supporter")
+  const siteConfig = useSiteConfig()
+  const groomSign = siteConfig.couple.groomNickname || siteConfig.couple.groom
+  const brideSign = siteConfig.couple.brideNickname || siteConfig.couple.bride
+  const confirmedDisplayName = (inviteeFromLink || preferredName).trim()
 
   const submitResponse = async (status: "Confirmed" | "Declined", name: string) => {
     const response = await fetch("/api/proposal-responses", {
@@ -778,7 +919,10 @@ export function ProposalPage({ role }: ProposalPageProps) {
   const handleNoSubmit = async () => {
     setSubmitting(true)
     try {
-      await submitResponse("Declined", "Declined Entourage Offer")
+      const declineLabel = confirmedDisplayName
+        ? `${confirmedDisplayName} (declined)`
+        : "Declined Entourage Offer"
+      await submitResponse("Declined", declineLabel)
       setFlowState("no_submitted")
     } catch (err) {
       console.error("Failed to submit decline:", err)
@@ -787,18 +931,45 @@ export function ProposalPage({ role }: ProposalPageProps) {
     }
   }
 
-  const roleSingular = getRoleSingular(role.title)
+  const handleYesClick = async () => {
+    const name = (inviteeFromLink || preferredName).trim()
+    if (!name) {
+      setFlowState("yes_details")
+      return
+    }
+    setPreferredName(name)
+    setValidationError("")
+    setSubmitting(true)
+    try {
+      await submitResponse("Confirmed", name)
+      setFlowState("yes_submitted")
+    } catch (err) {
+      console.error("Failed to submit confirmation:", err)
+      setValidationError("We couldn't save your response. Please try again.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div
-      className={`${theSeasons.variable} ${aboveTheBeyond.variable} ${playfair.className} relative min-h-screen select-none px-3 py-10 text-[#3d3228] sm:px-6 sm:py-16 md:py-20 ${pageScrollLocked ? "overflow-hidden" : "overflow-x-hidden"}`}
-      style={{ background: "#780008" }}
+      className={`${theSeasons.variable} ${aboveTheBeyond.variable} relative min-h-[100dvh] select-none px-3.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6 sm:py-16 md:py-20 ${pageScrollLocked ? "overflow-hidden" : "overflow-x-hidden"}`}
+      style={{ background: sectionBackground, color: CREAM }}
     >
-      <div className="pointer-events-none fixed inset-0 z-0" aria-hidden>
-        <Suspense fallback={<div className="h-full w-full bg-[#780008]" />}>
-          <Silk speed={8} scale={0.9} color="#780008" noiseIntensity={0} rotation={0.3} />
+      <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.22]" aria-hidden>
+        <Suspense fallback={<div className="h-full w-full" style={{ background: sectionBackground }} />}>
+          <Silk speed={6} scale={1} color="#B89562" noiseIntensity={0} rotation={0.25} />
         </Suspense>
       </div>
+
+      {loadingOverlayVisible && (
+        <div
+          className="invite-photo-backdrop-wrap invite-photo-backdrop-wrap--loading"
+          aria-hidden="true"
+        >
+          <InvitePhotoBackdrop />
+        </div>
+      )}
 
       {loadingOverlayVisible && (
         <LoadingScreen
@@ -818,7 +989,7 @@ export function ProposalPage({ role }: ProposalPageProps) {
 
       {cinematicEntry && (
         <motion.div
-          className="pointer-events-none fixed inset-0 z-[28] bg-[#faf7f1]"
+          className="pointer-events-none fixed inset-0 z-[28] bg-[var(--color-welcome-bg)]"
           aria-hidden="true"
           initial={{ clipPath: "circle(0% at 50% 46%)", opacity: 0.98 }}
           animate={{ clipPath: "circle(145% at 50% 46%)", opacity: 0 }}
@@ -838,75 +1009,54 @@ export function ProposalPage({ role }: ProposalPageProps) {
             ? { duration: 1.08, ease: proposalEntryEase, delay: 0.86 }
             : { duration: 0.01 }
         }
-        className={`relative z-10 mx-auto flex w-full max-w-2xl flex-col items-center justify-center lg:max-w-4xl min-h-[calc(100dvh-5rem)] sm:min-h-[calc(100dvh-8rem)] ${proposalVisible ? "" : "pointer-events-none"}`}
+        className={`relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center justify-start px-1 pt-8 sm:justify-center sm:px-0 sm:pt-0 min-h-0 sm:min-h-[calc(100dvh-8rem)] pb-4 ${proposalVisible ? "" : "pointer-events-none"}`}
         style={{ color: palette.body }}
       >
+        {proposalVisible && <ProposalCornerDecorations />}
+
+        {proposalVisible && flowState === "question" && <ProposalPageHeader />}
+
         <AnimatePresence mode="wait">
           {flowState === "question" && (
             <motion.div
               key="question-box"
+              className="relative z-10 w-full"
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
               <ProposalCard>
-              <div className="relative z-10 w-full space-y-6 pt-2 sm:space-y-9 sm:pt-3">
-                <ProposalIntroSection />
+              <div className="relative z-10 w-full space-y-1 sm:space-y-2">
+                <ProposalPersonalLetter
+                  inviteeName={inviteeFromLink || preferredName}
+                  roleTitle={role.title}
+                />
 
-                <div
-                  className="mx-auto max-w-xl space-y-4 px-1 py-6 sm:space-y-5 sm:px-2 sm:py-9"
-                >
-                  <figure
-                    className="rounded-md border px-4 py-3.5 sm:rounded-lg sm:px-5 sm:py-4"
-                    style={{
-                      background: INNER_SURFACE,
-                      borderColor: BORDER_SOFT,
-                    }}
-                  >
-                    <blockquote>
-                      <p
-                        className={`${playfair.className} italic ${sectionType.textSnug}`}
-                        style={{ color: palette.body }}
-                      >
-                        In choosing who will stand with us, we did not begin with titles — we began
-                        with the people who have walked with us, believed in us, and loved us along
-                        the way.
-                      </p>
-                    </blockquote>
-                  </figure>
-
-                  <div
-                    className={`${playfair.className} italic space-y-3 text-pretty sm:space-y-3.5 ${sectionType.textRelaxed}`}
-                    style={{ color: palette.body }}
-                  >
-                    <p>
-                      You have been a blessing in our lives — through your kindness, your laughter,
-                      and the love you have shown us. That is why we are reaching out to you
-                      personally, and not to everyone.
-                    </p>
-                    <p>
-                      We cannot imagine this day without the people who matter most standing close
-                      beside us. If your heart is open to it, it would mean the world to us to
-                      have you there not only as someone we cherish, but as an important part of
-                      our wedding.
-                    </p>
-                    <p
-                      className={`${cinzel.className} ${sectionType.label} font-semibold uppercase tracking-[0.1em] sm:tracking-[0.14em] md:tracking-[0.16em]`}
-                      style={{ color: palette.label }}
-                    >
-                      With sincerity and gratitude, we ask — would you stand with us as our:
-                    </p>
-                  </div>
-                </div>
+                {validationError && flowState === "question" && (
+                  <p className="text-center text-xs font-medium text-rose-600">{validationError}</p>
+                )}
 
                 <ProposalAskSection
-                  roleSingular={roleSingular}
-                  description={role.description}
-                  coAttendants={coAttendants}
-                  onYes={() => setFlowState("yes_details")}
+                  roleTitle={role.title}
+                  submitting={submitting}
+                  onYes={() => void handleYesClick()}
                   onNo={() => setFlowState("no_clicked")}
                 />
+
+                <div className="pt-4 sm:pt-6">
+                  <OrnamentalDivider compact />
+                  <p
+                    className={`${cinzel.className} mt-4 text-[0.58rem] font-medium uppercase tracking-[0.2em] sm:text-[0.625rem]`}
+                    style={{ color: palette.bodySoft }}
+                  >
+                    With love,
+                    <br />
+                    <span className={`${theSeasons.className} mt-1 inline-block text-sm normal-case tracking-[0.08em]`} style={{ color: INK }}>
+                      {groomSign} & {brideSign}
+                    </span>
+                  </p>
+                </div>
               </div>
               </ProposalCard>
             </motion.div>
@@ -928,22 +1078,23 @@ export function ProposalPage({ role }: ProposalPageProps) {
                   iconClassName=""
                   iconStyle={{
                     border: `1px solid ${GOLD_BORDER}`,
-                    background: "linear-gradient(180deg, #fff8dc 0%, #d4af37 100%)",
+                    background:
+                      "linear-gradient(180deg, var(--color-welcome-blush) 0%, var(--color-welcome-gold) 100%)",
                     color: INK,
                   }}
-                  main="We are Honored"
-                  script="you said yes"
+                  main="You Said Yes"
+                  script="we're so happy"
                 />
 
-                <ProposalFlowSubheader>A few details to complete your response</ProposalFlowSubheader>
+                <ProposalFlowSubheader>One quick detail</ProposalFlowSubheader>
 
                 <ProposalFlowBody className="mb-2 max-w-md text-center sm:mb-3">
-                  Thank you for accepting our invitation to stand with us. Your yes means more to
-                  us than we can easily put into words — we are truly grateful.
+                  We couldn&apos;t be happier to have you by our side! Please confirm the name
+                  you&apos;d like on our invitation and guest lists.
                 </ProposalFlowBody>
 
                 <p
-                  className={`${playfair.className} italic mx-auto mb-1 max-w-md text-center ${sectionType.textSnug}`}
+                  className={`font-goudy-italic mx-auto mb-1 max-w-md text-center ${sectionType.textSnug}`}
                   style={{ color: INK }}
                 >
                   Please enter the exact name you would like displayed on our wedding invitation
@@ -960,12 +1111,13 @@ export function ProposalPage({ role }: ProposalPageProps) {
                     placeholder="e.g. Aunt Maria Clara / Mr. James Bond"
                     value={preferredName}
                     onChange={(e) => setPreferredName(e.target.value)}
-                    className={`${playfair.className} italic w-full rounded-xl px-4 py-2.5 text-xs text-[#3d3228] placeholder:text-[#3d3228]/45 transition-all focus:outline-none focus:ring-2 focus:ring-[#d4af37]/40 sm:py-3 sm:text-sm`}
+                    className="font-goudy-italic w-full rounded-xl px-4 py-2.5 text-xs transition-all focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-welcome-gold)_45%,transparent)] sm:py-3 sm:text-sm"
                     style={{
                       color: INK,
                       backgroundColor: INNER_SURFACE,
                       border: `1px solid ${BORDER_SOFT}`,
-                      boxShadow: "inset 0 1px 2px rgb(0 0 0 / 28%)",
+                      boxShadow:
+                        "inset 0 1px 2px color-mix(in srgb, var(--color-welcome-navy) 6%, transparent)",
                     }}
                   />
                   {validationError && (
@@ -1018,13 +1170,14 @@ export function ProposalPage({ role }: ProposalPageProps) {
                     color: CHAMPAGNE,
                     border: `1px solid ${BORDER_SOFT}`,
                     backgroundColor: INNER_SURFACE,
-                    boxShadow: "0 8px 24px color-mix(in srgb, #d4af37 28%, transparent)",
+                    boxShadow:
+                      "0 8px 24px color-mix(in srgb, var(--color-welcome-gold) 22%, transparent)",
                   }}
-                  main="It's Official"
+                  main="You Said Yes"
                   script="thank you"
                 />
 
-                <ProposalFlowSubheader>Your response has been received</ProposalFlowSubheader>
+                <ProposalFlowSubheader>We couldn&apos;t be happier</ProposalFlowSubheader>
 
                 <div
                   className="mx-auto mb-2 max-w-sm rounded-2xl px-6 py-4 shadow-sm backdrop-blur-sm sm:mb-4"
@@ -1037,10 +1190,10 @@ export function ProposalPage({ role }: ProposalPageProps) {
                     Registered name
                   </span>
                   <p
-                    className={`${playfair.className} italic ${sectionType.text} font-medium`}
+                    className={`${theSeasons.className} ${sectionType.text} font-medium`}
                     style={{ ...nameStyle, color: palette.heading }}
                   >
-                    {preferredName}
+                    {confirmedDisplayName || preferredName}
                   </p>
                   <span
                     className={`${cinzel.className} mt-2 block text-[10px] font-semibold tracking-[0.14em] uppercase sm:text-[11px]`}
@@ -1051,9 +1204,20 @@ export function ProposalPage({ role }: ProposalPageProps) {
                 </div>
 
                 <ProposalFlowBody className="mb-8 max-w-md text-center sm:mb-10">
-                  Having you stand with us fills our hearts with joy and gratitude. We cannot wait
-                  to celebrate this beautiful day together with you by our side.
+                  Thank you for being willing to share this special moment with us. We can&apos;t
+                  wait to celebrate, laugh, make memories, and experience this beautiful day
+                  together. Having you beside us will make our wedding day even more special.
+                  Let&apos;s make some unforgettable memories together!
                 </ProposalFlowBody>
+
+                <p
+                  className={`${cinzel.className} text-center text-[0.58rem] font-medium uppercase tracking-[0.16em]`}
+                  style={{ color: palette.bodySoft }}
+                >
+                  With love,
+                  <br />
+                  {groomSign} & {brideSign}
+                </p>
 
                 <div className="flex items-center justify-center pb-2 sm:pb-3">
                   <DividerLine className="w-full max-w-md" />
@@ -1092,12 +1256,13 @@ export function ProposalPage({ role }: ProposalPageProps) {
                   script="for responding"
                 />
 
-                <ProposalFlowSubheader>We understand and appreciate your honesty</ProposalFlowSubheader>
+                <ProposalFlowSubheader>We completely understand</ProposalFlowSubheader>
 
                 <ProposalFlowBody className="mb-8 max-w-lg text-center sm:mb-10">
-                  While we&apos;re saddened that you won&apos;t be able to join us in this role, we
-                  truly appreciate your support and well wishes as we begin this new chapter
-                  together.
+                  Thank you for taking the time to consider being part of our wedding party. Please
+                  know that there are absolutely no hard feelings. Whether you&apos;re standing
+                  beside us or cheering for us from wherever you are, we will always be grateful to
+                  have you in our lives.
                 </ProposalFlowBody>
 
                 <div className="flex items-center justify-center pt-4">
@@ -1147,10 +1312,18 @@ export function ProposalPage({ role }: ProposalPageProps) {
                 <ProposalFlowSubheader>Your message has reached us</ProposalFlowSubheader>
 
                 <ProposalFlowBody className="mb-6 max-w-md text-center sm:mb-8">
-                  We have received your response. Your love, support, and well wishes mean the
-                  world to us regardless. We look forward to celebrating other special milestones
-                  with you in the future.
+                  We hope you&apos;ll still celebrate this beautiful day with us in your own way.
+                  Your love and warmest wishes mean the world to us.
                 </ProposalFlowBody>
+
+                <p
+                  className={`${cinzel.className} text-center text-[0.58rem] font-medium uppercase tracking-[0.16em]`}
+                  style={{ color: palette.bodySoft }}
+                >
+                  With love and warmest wishes,
+                  <br />
+                  {groomSign} & {brideSign}
+                </p>
 
                 <div className="flex items-center justify-center pb-2 sm:pb-3">
                   <DividerLine className="w-full max-w-md" />
@@ -1170,5 +1343,24 @@ export function ProposalPage({ role }: ProposalPageProps) {
         </AnimatePresence>
       </motion.div>
     </div>
+  )
+}
+
+export function ProposalPage(props: ProposalPageProps) {
+  return (
+    <Suspense
+      fallback={
+        <div
+          className="flex min-h-screen items-center justify-center px-6"
+          style={{ background: sectionBackground, color: CREAM }}
+        >
+          <p className={`${cinzel.className} text-sm uppercase tracking-[0.2em]`}>
+            Loading invitation…
+          </p>
+        </div>
+      }
+    >
+      <ProposalPageInner {...props} />
+    </Suspense>
   )
 }

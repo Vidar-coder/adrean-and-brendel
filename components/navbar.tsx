@@ -6,6 +6,7 @@ import { useSiteConfig } from "@/hooks/use-site-config"
 import Image from "next/image"
 import StaggeredMenu from "./StaggeredMenu"
 import { Cormorant_Garamond } from "next/font/google"
+import { siteConfig } from "@/content/site"
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -16,7 +17,7 @@ const cormorant = Cormorant_Garamond({
 // Edit there once to update every component.
 
 
-const NAV_MONOGRAM = "/image/beauty-and-beast.png"
+const NAV_MONOGRAM = siteConfig.couple.monogram
 
 const navLinks = [
   { href: "#home", label: "Home" },

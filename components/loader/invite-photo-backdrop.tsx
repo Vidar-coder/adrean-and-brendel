@@ -3,24 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useReducedMotion } from 'motion/react';
-import { LOADING_BG_PHOTOS } from '@/lib/loading-bg-photos';
+import {
+  LOADING_BG_PHOTOS,
+  MOBILE_BACKGROUND_PHOTOS,
+} from '@/lib/loading-bg-photos';
 import './loading-screen.css';
 
 export { LOADING_BG_PHOTOS };
 
-const MOBILE_BG_PHOTO_COUNT = 77;
-const DESKTOP_BG_PHOTO_COUNT = 38;
+export const MOBILE_BG_PHOTOS = MOBILE_BACKGROUND_PHOTOS;
+
 const MARQUEE_SAMPLE_SIZE = 24;
-
-export const MOBILE_BG_PHOTOS = Array.from(
-  { length: MOBILE_BG_PHOTO_COUNT },
-  (_, index) => encodeURI(`/mobile-background/couples (${index + 1}).webp`),
-);
-
-export const DESKTOP_BG_PHOTOS = Array.from(
-  { length: DESKTOP_BG_PHOTO_COUNT },
-  (_, index) => encodeURI(`/desktop-background/couples (${index + 1}).webp`),
-);
 
 function pickRandomPhotos(photos: readonly string[], count: number) {
   const next = [...photos];

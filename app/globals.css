@@ -148,25 +148,25 @@
   
 /* ==========================================
    MOTIF COLORS
-   Theme: Warm Linen Garden
-   Ivory + Linen + Sage + Dusty Blush + Champagne
+   Theme: Champagne Beige Brown
+   Champagne + Ivory + Beige + Mocha + Cocoa
    ========================================== */
 
 /* Background / Linen */
---color-motif-cream:     #E8DED0; /* Warm linen */
---color-motif-yellow:    #B49A68; /* Champagne gold */
---color-motif-soft:      #F5F0E7; /* Soft ivory */
+--color-motif-cream:     #F3E9D7; /* Soft beige */
+--color-motif-yellow:    #B89562; /* Muted champagne gold */
+--color-motif-soft:      #FAF6EE; /* Warm ivory */
 
-/* Botanical Accents */
---color-motif-accent:    #8A9470; /* Muted sage */
---color-motif-deep:      #697052; /* Olive leaf */
---color-motif-medium:    #A4A88F; /* Soft sage */
+/* Warm Brown Accents */
+--color-motif-accent:    #8A6246; /* Warm mocha */
+--color-motif-deep:      #6B4632; /* Deep cocoa brown */
+--color-motif-medium:    #B7A18A; /* Soft taupe */
 
 /* Floral Accent */
---color-motif-blush:     #C99F91; /* Dusty blush */
+--color-motif-blush:     #D8C1A5; /* Champagne beige */
 
 /* Neutral / Paper */
---color-motif-silver:    #D8CCBB; /* Warm parchment */
+--color-motif-silver:    #E8D5B5; /* Warm champagne */
 
 
 /* ==========================================
@@ -195,24 +195,24 @@
    ========================================== */
 
 /* Main body text */
---color-welcome-text: #6B5C4D; /* Warm taupe */
+--color-welcome-text: #6B4632; /* Warm cocoa */
 
 /* Secondary / softer text */
 --color-welcome-text-soft:
     color-mix(
         in srgb,
-        #6B5C4D 65%,
+        #6B4632 65%,
         white
     );
 
 /* Small headings */
---color-welcome-heading: #697052; /* Olive sage */
+--color-welcome-heading: #8A6246; /* Warm mocha */
 
 /* Script / romantic accent */
---color-welcome-script: #B49A68; /* Champagne gold */
+--color-welcome-script: #B89562; /* Champagne gold */
 
 /* Main hero heading */
---color-welcome-navy: #5E5144; /* Warm brown-gray */
+--color-welcome-navy: #3F2A20; /* Deep espresso */
 
 
 /* ==========================================
@@ -220,16 +220,16 @@
    ========================================== */
 
 /* Buttons */
---color-welcome-green: #697052; /* Olive */
+--color-welcome-green: #6B4632; /* Cocoa brown */
 
 /* Decorative botanical lines */
---color-welcome-botanical: #8A9470; /* Sage */
+--color-welcome-botanical: #8A6246; /* Warm mocha */
 
 /* Gold decorative details */
---color-welcome-gold: #B49A68; /* Champagne */
+--color-welcome-gold: #B89562; /* Champagne gold */
 
 /* Floral accents */
---color-welcome-blush: #C99F91; /* Dusty blush */
+--color-welcome-blush: #D8C1A5; /* Soft champagne beige */
   /* ─────────────────────────────────────────────────────────── */
   --font-imperial-script: "Imperial Script", cursive;
   --font-anastasia-script: "CoupleAnastasia";

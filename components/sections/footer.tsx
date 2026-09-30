@@ -40,7 +40,7 @@ const dividerLineStyle = {
 } as const
 
 const CORNER_DECO_CLASS =
-  "block h-auto w-auto max-w-[80px] sm:max-w-[120px] md:max-w-[170px] lg:max-w-[205px] xl:max-w-[245px] select-none"
+  "block h-auto w-auto max-w-[165px] sm:max-w-[245px] md:max-w-[350px] lg:max-w-[425px] xl:max-w-[500px] select-none"
 
 const ct = {
   label: sectionType.label,
@@ -226,7 +226,7 @@ export function Footer() {
       <div className="pointer-events-none absolute left-0 top-0 z-10">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/decoration/top-left-corner.png"
+          src="/deco/left-top-deco.png"
           alt=""
           aria-hidden="true"
           className={CORNER_DECO_CLASS}
@@ -235,7 +235,7 @@ export function Footer() {
       <div className="pointer-events-none absolute right-0 top-0 z-10">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/decoration/top-right-corner.png"
+          src="/deco/right-top-deco.png"
           alt=""
           aria-hidden="true"
           className={CORNER_DECO_CLASS}
@@ -244,7 +244,7 @@ export function Footer() {
       <div className="pointer-events-none absolute bottom-0 left-0 z-10">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/decoration/bottom-left-corner.png"
+          src="/deco/left-bottom-deco.png"
           alt=""
           aria-hidden="true"
           className={CORNER_DECO_CLASS}
@@ -253,7 +253,7 @@ export function Footer() {
       <div className="pointer-events-none absolute bottom-0 right-0 z-10">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/decoration/bottom-right-corner.png"
+          src="/deco/right-bottom-deco.png"
           alt=""
           aria-hidden="true"
           className={CORNER_DECO_CLASS}

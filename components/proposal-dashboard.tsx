@@ -22,6 +22,7 @@ import {
   countFilledNamesByProposalRoles,
   getRoleSingular,
 } from "@/lib/proposal-roles"
+import { buildProposalInviteUrl } from "@/lib/proposal-invite-link"
 import {
   Dialog,
   DialogContent,
@@ -58,10 +59,16 @@ export function ProposalDashboard() {
   >(null)
   const [inviteeName, setInviteeName] = useState("")
   const [copiedInviteText, setCopiedInviteText] = useState(false)
+  const [copiedPersonalLink, setCopiedPersonalLink] = useState(false)
+  const [inviteNameError, setInviteNameError] = useState("")
 
-  const getProposalLink = (roleId: string) => {
-    if (typeof window !== "undefined") {
-      return `${window.location.origin}/will-you-be-proposal/${roleId}`
+  const getOrigin = () =>
+    typeof window !== "undefined" ? window.location.origin : ""
+
+  const getProposalLink = (roleId: string, invitee?: string) => {
+    const origin = getOrigin()
+    if (origin) {
+      return buildProposalInviteUrl(origin, roleId, invitee)
     }
     return `/will-you-be-proposal/${roleId}`
   }
@@ -84,24 +91,63 @@ export function ProposalDashboard() {
     setSelectedInviteRole(null)
     setInviteeName("")
     setCopiedInviteText(false)
+    setCopiedPersonalLink(false)
+    setInviteNameError("")
   }
 
   const getInviteMessage = () => {
     if (!selectedInviteRole) return ""
-    const namePrefix = inviteeName.trim() ? `Hi ${inviteeName.trim()}! ` : "Hi! "
+    const name = inviteeName.trim()
     const roleSingular = getRoleSingular(selectedInviteRole.title)
-    const url = getProposalLink(selectedInviteRole.id)
+    const url = getProposalLink(selectedInviteRole.id, name)
     const groom = siteConfig.couple.groomNickname
     const bride = siteConfig.couple.brideNickname
     const date = siteConfig.wedding.date
+    const day = siteConfig.ceremony.day ?? "Saturday"
+    const time = siteConfig.ceremony.time ?? siteConfig.wedding.time
+    const venue = siteConfig.ceremony.location
 
-    return `${namePrefix}${groom} and ${bride} are getting married on ${date}! 💍\n\nBecause you are such a wonderful model of love, laughter, and support, they would be absolutely honored if you would stand by their side as their ${roleSingular}.\n\nRead their formal proposal here and let them know your thoughts:\n👉 ${url}`
+    const greeting = name ? `Dear ${name},` : "Hello,"
+
+    return `${greeting}
+
+${groom} & ${bride} have a personal wedding invitation for you.
+
+They would love for you to open your special link, read their message, and confirm whether you can stand with them as their ${roleSingular}.
+
+${date} | ${day} | ${time}
+${venue}
+
+Open your invitation:
+${url}
+
+With love,
+${groom} & ${bride}`
   }
 
   const handleCopyInviteText = () => {
+    if (!inviteeName.trim()) {
+      setInviteNameError("Enter the guest's name so the link opens with “Dear (Name)” on the proposal page.")
+      return
+    }
+    setInviteNameError("")
     navigator.clipboard.writeText(getInviteMessage()).then(() => {
       setCopiedInviteText(true)
       setTimeout(() => setCopiedInviteText(false), 2500)
+    })
+  }
+
+  const handleCopyPersonalLink = () => {
+    if (!selectedInviteRole) return
+    if (!inviteeName.trim()) {
+      setInviteNameError("Enter the guest's name to generate a personalized link.")
+      return
+    }
+    setInviteNameError("")
+    const link = getProposalLink(selectedInviteRole.id, inviteeName.trim())
+    navigator.clipboard.writeText(link).then(() => {
+      setCopiedPersonalLink(true)
+      setTimeout(() => setCopiedPersonalLink(false), 2500)
     })
   }
 
@@ -166,11 +212,12 @@ export function ProposalDashboard() {
               <Heart className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-[#111827]">Proposal Invitations</h2>
+              <h2 className="text-2xl font-bold text-[#111827]">Special Proposal Invitations</h2>
               <p className="mt-1 max-w-xl text-sm leading-relaxed text-[#6B7280]">
-                Share a unique proposal link for each role. When someone accepts, their name fills
-                the next available empty slot in Google Sheets (entourage or sponsors) — matched by
-                role category.
+                Enter each guest&apos;s name, copy their personal link, and send it by text or
+                messenger. They&apos;ll see &ldquo;Dear (Name)&rdquo; and the role you&apos;re
+                offering — they only need to confirm yes or no. Accepted names fill the next open
+                slot in Google Sheets for that role.
               </p>
             </div>
           </div>
@@ -296,10 +343,11 @@ export function ProposalDashboard() {
 
                   <button
                     onClick={() => openInviteModal(role)}
-                    className="cursor-pointer rounded-lg border border-[#A67C52]/30 bg-[#FFF8F0] p-2.5 text-[#8B6F47] transition-all hover:border-[#A67C52] hover:bg-[#A67C52] hover:text-white"
-                    title="Invite helper"
+                    className="cursor-pointer rounded-lg border border-[#A67C52]/30 bg-[#FFF8F0] px-3 py-2.5 text-xs font-semibold text-[#8B6F47] transition-all hover:border-[#A67C52] hover:bg-[#A67C52] hover:text-white"
+                    title="Create personalized invitation"
                   >
-                    <Send className="h-4 w-4" />
+                    <Send className="h-4 w-4 inline sm:mr-1" />
+                    <span className="hidden sm:inline">Personalize</span>
                   </button>
 
                   <Link
@@ -329,28 +377,49 @@ export function ProposalDashboard() {
             <DialogHeader className="space-y-1 text-left">
               <DialogTitle className="flex items-center gap-2 text-[#6B4423]">
                 <Sparkles className="h-5 w-5 text-[#A67C52]" />
-                Invite Helper
+                Personal Special Invitation
               </DialogTitle>
               <DialogDescription className="text-sm text-[#6B7280]">
                 {selectedInviteRole
-                  ? `Compose a personal message for ${selectedInviteRole.title}`
-                  : "Compose a proposal invite message"}
+                  ? `Role offered: ${selectedInviteRole.title}. The guest’s name appears on their proposal page — they only confirm yes or no.`
+                  : "Create a personalized proposal link"}
               </DialogDescription>
             </DialogHeader>
           </div>
 
           <div className="min-w-0 space-y-4 px-6 py-5">
+            {selectedInviteRole && (
+              <div className="rounded-xl border border-[#E5E7EB] bg-[#FFF8F0] px-4 py-3">
+                <p className="text-[10px] font-bold tracking-widest text-[#8B6F47] uppercase">
+                  Role offer
+                </p>
+                <p className="mt-1 text-base font-semibold text-[#111827]">
+                  {selectedInviteRole.title}
+                </p>
+                <p className="mt-0.5 text-xs text-[#6B7280]">{selectedInviteRole.category}</p>
+              </div>
+            )}
+
             <div className="min-w-0">
               <label className="mb-1.5 block text-xs font-semibold tracking-wider text-[#6B7280] uppercase">
-                Recipient name
+                Guest name <span className="text-[#A67C52]">*</span>
               </label>
               <input
                 type="text"
-                placeholder="e.g. Auntie Maria"
+                placeholder="e.g. Maria Clara Santos"
                 value={inviteeName}
-                onChange={(e) => setInviteeName(e.target.value)}
+                onChange={(e) => {
+                  setInviteeName(e.target.value)
+                  if (e.target.value.trim()) setInviteNameError("")
+                }}
                 className="box-border w-full min-w-0 rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#A67C52]/30 focus:outline-none"
               />
+              <p className="mt-1.5 text-xs text-[#9CA3AF]">
+                Shown on the proposal as &ldquo;Dear {inviteeName.trim() || "Name"}&rdquo;
+              </p>
+              {inviteNameError && (
+                <p className="mt-2 text-xs font-medium text-rose-600">{inviteNameError}</p>
+              )}
             </div>
 
             <div className="min-w-0">
@@ -368,16 +437,16 @@ export function ProposalDashboard() {
             {selectedInviteRole && (
               <div className="min-w-0 rounded-xl border border-[#E5E7EB] bg-[#FFF8F0] px-4 py-3">
                 <p className="text-[10px] font-semibold tracking-wider text-[#8B6F47] uppercase">
-                  Proposal link
+                  Personal proposal link
                 </p>
                 <p className="mt-1 break-all font-mono text-xs text-[#6B7280]">
-                  {getProposalLink(selectedInviteRole.id)}
+                  {getProposalLink(selectedInviteRole.id, inviteeName.trim() || undefined)}
                 </p>
               </div>
             )}
           </div>
 
-          <DialogFooter className="shrink-0 border-t border-[#F3F4F6] bg-[#F9FAFB] px-6 py-4 sm:justify-between">
+          <DialogFooter className="shrink-0 flex-col gap-2 border-t border-[#F3F4F6] bg-[#F9FAFB] px-6 py-4 sm:flex-row sm:justify-between">
             <button
               type="button"
               onClick={closeInviteModal}
@@ -385,18 +454,32 @@ export function ProposalDashboard() {
             >
               Cancel
             </button>
-            <button
-              type="button"
-              onClick={handleCopyInviteText}
-              className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#A67C52] bg-[#A67C52] px-5 py-2.5 text-xs font-semibold tracking-wide text-white uppercase transition-all hover:bg-[#8B6F47]"
-            >
-              {copiedInviteText ? (
-                <Check className="h-3.5 w-3.5" />
-              ) : (
-                <Copy className="h-3.5 w-3.5" />
-              )}
-              {copiedInviteText ? "Copied!" : "Copy Message"}
-            </button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={handleCopyPersonalLink}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#A67C52]/40 bg-white px-4 py-2.5 text-xs font-semibold tracking-wide text-[#6B4423] uppercase transition-all hover:bg-[#FFF8F0]"
+              >
+                {copiedPersonalLink ? (
+                  <Check className="h-3.5 w-3.5" />
+                ) : (
+                  <Link2 className="h-3.5 w-3.5" />
+                )}
+                {copiedPersonalLink ? "Link copied!" : "Copy link"}
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyInviteText}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#A67C52] bg-[#A67C52] px-5 py-2.5 text-xs font-semibold tracking-wide text-white uppercase transition-all hover:bg-[#8B6F47]"
+              >
+                {copiedInviteText ? (
+                  <Check className="h-3.5 w-3.5" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5" />
+                )}
+                {copiedInviteText ? "Copied!" : "Copy full message"}
+              </button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
