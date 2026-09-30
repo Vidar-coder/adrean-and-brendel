@@ -15,7 +15,7 @@ export const siteConfig = {
   googleAPI:{
     messageForm: "https://docs.google.com/forms/d/e/1FAIpQLSca1e79uyyBKmkGGQcyYuttA337arthx8cLTsIevSEPim6zHg/formResponse",   //done
     message: "https://script.google.com/macros/s/AKfycbzNiuhmvI-7DX64h7crCq3NT5YodXqliMCY2oAddqqE1UVj-xpCBeADkj5sIekhmEZK/exec",  //done
-    guestList: "https://script.google.com/macros/s/AKfycbzOuquXRVxaajjhmGRPYOfxjz_qAYv1tUBxacTfpdPB7CT0vLx4Q3851HtWd1qpaFXA/exec",  //done
+    guestList: "https://script.google.com/macros/s/AKfycbxet5dATlP3E-z74lGMO46wZVoCXs5thvptztX3uSkewfltRJYOPSB0iHcA4s1aZnWy/exec",  //done
     guestRequest: "https://script.google.com/macros/s/AKfycbxgDT8bNXtI8mfgU1sYPW1Q5W8chFUdhMqeX8uaIGqGrCoiNCHixEUVJmMw7LBehFI/exec",   //done
     entourage: "https://script.google.com/macros/s/AKfycbwqSbhBP2TnMRoxKcIVqoY6nIRheDSXBo1KS-AW_yyN8Uh-r1FEsVXD0HEHmjCRzP1j/exec",  //done
     sponsors: "https://script.google.com/macros/s/AKfycbyfcBSMRoBbedn_h1l806MPuSFufBFgpwwPyyDbSPmzJPVuST2r-6trfrcbhMlRxpfX/exec",  //done 
