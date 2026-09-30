@@ -9,7 +9,7 @@ import { ClientLayout } from "@/components/client-layout"
 import { LOADING_BG_PHOTOS } from "@/lib/loading-bg-photos"
 import { anastasiaScript } from "@/lib/fonts"
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://adrean-and-brendel.weddinginvitationrsvp.com"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://adrean-and-brendel.weddinginvitationrsvp.com/"
 const canonicalUrl = siteUrl.replace(/\/$/, "")
   const desktopHero = "/Details/LinkPreview.png"
 const mobileHero = "/Details/LinkPreview.png"
