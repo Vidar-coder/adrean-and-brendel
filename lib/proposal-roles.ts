@@ -82,7 +82,16 @@ function getRoleSheetCategories(role: ProposalRole): string[] {
 }
 
 export function getProposalRoleById(roleId: string): ProposalRole | undefined {
-  const resolvedId = PROPOSAL_ROLE_ID_ALIASES[roleId] ?? roleId
+  let normalized = roleId.trim()
+  try {
+    normalized = decodeURIComponent(normalized).trim()
+  } catch {
+    // keep trimmed raw value
+  }
+  const resolvedId =
+    PROPOSAL_ROLE_ID_ALIASES[normalized] ??
+    PROPOSAL_ROLE_ID_ALIASES[normalized.toLowerCase()] ??
+    normalized
   return PROPOSAL_ROLES.find((role) => role.id === resolvedId)
 }
 

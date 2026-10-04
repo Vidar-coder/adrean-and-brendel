@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import localFont from "next/font/local"
 import { Cinzel, Playfair_Display } from "next/font/google"
+import { ProposalMixedText, proposalMixedTextInter } from "@/lib/proposal-mixed-text"
 import { useSiteConfig } from "@/hooks/use-site-config"
 import { Hero as InvitationHero } from "@/components/loader/Hero"
 import { LoadingScreen } from "@/components/loader/LoadingScreen"
@@ -52,6 +53,20 @@ const playfair = Playfair_Display({
   weight: ["500", "600", "700"],
   style: ["normal", "italic"],
 })
+
+const inter = proposalMixedTextInter
+
+const ceremonyBearerBodyClass =
+  `${playfair.className} mx-auto max-w-md space-y-3.5 text-pretty text-[0.9375rem] font-medium leading-[1.68] sm:space-y-4 sm:text-base sm:leading-relaxed`
+
+const ceremonyBearerLabelClass =
+  `${cinzel.className} not-italic text-[0.625rem] font-semibold uppercase tracking-[0.12em] leading-snug sm:text-xs sm:tracking-[0.16em]`
+
+const ceremonyBearerPrimaryBtnClass =
+  `${playfair.className} touch-manipulation cursor-pointer rounded-full border px-3 py-3.5 text-[0.8125rem] font-semibold normal-case leading-snug tracking-[0.02em] transition-all duration-300 active:scale-[0.98] disabled:opacity-50 sm:px-7 sm:py-3.5 sm:text-sm sm:tracking-[0.03em] sm:hover:scale-[1.02]`
+
+const ceremonyBearerSecondaryBtnClass =
+  `${playfair.className} touch-manipulation cursor-pointer rounded-full border px-3 py-3 text-[0.75rem] font-semibold normal-case leading-snug tracking-[0.02em] transition-all duration-300 active:scale-[0.98] sm:px-7 sm:py-3.5 sm:text-[0.8125rem] sm:tracking-[0.03em] sm:hover:scale-[1.02]`
 
 const theSeasons = localFont({
   src: "../Font/Fontspring-DEMO-theseasons-reg.otf",
@@ -222,7 +237,7 @@ function LayeredProposalTitle({
   scriptOverlap = welcomeTitleSize.overlap,
   scriptClassName = "",
 }: {
-  main: string
+  main: ReactNode
   script: string
   titleSize?: string
   scriptSize?: string
@@ -278,7 +293,7 @@ function ProposalFlowHeader({
   animated = false,
 }: {
   icon: ReactNode
-  main: string
+  main: ReactNode
   script: string
   iconClassName?: string
   iconStyle?: CSSProperties
@@ -330,16 +345,19 @@ function ProposalFlowSubheader({ children }: { children: ReactNode }) {
 function ProposalFlowBody({
   children,
   className = "",
+  mixedText,
 }: {
-  children: ReactNode
+  children?: ReactNode
   className?: string
+  /** Full paragraph — apostrophes/emoji render in ordinary font. */
+  mixedText?: string
 }) {
   return (
     <p
       className={`font-goudy-italic mx-auto max-w-lg ${sectionType.textRelaxed} ${className}`}
       style={{ color: palette.body }}
     >
-      {children}
+      {mixedText != null ? <ProposalMixedText text={mixedText} /> : children}
     </p>
   )
 }
@@ -517,7 +535,15 @@ function ProposalPageHeader() {
   )
 }
 
-function ProposalCard({ children, className = "" }: { children: ReactNode; className?: string }) {
+function ProposalCard({
+  children,
+  className = "",
+  ceremonyBearer = false,
+}: {
+  children: ReactNode
+  className?: string
+  ceremonyBearer?: boolean
+}) {
   return (
     <div className={`relative mx-auto w-full max-w-2xl ${className}`}>
       <div className="relative">
@@ -537,7 +563,13 @@ function ProposalCard({ children, className = "" }: { children: ReactNode; class
           />
           <div className="wedding-frame-inner hidden min-[400px]:block" aria-hidden />
 
-          <div className="relative z-20 px-4 py-6 text-center sm:px-9 sm:py-11 md:px-12 md:py-14">
+          <div
+            className={
+              ceremonyBearer
+                ? "relative z-20 px-3 py-5 text-center sm:px-9 sm:py-11 md:px-12 md:py-14"
+                : "relative z-20 px-4 py-6 text-center sm:px-9 sm:py-11 md:px-12 md:py-14"
+            }
+          >
             {children}
           </div>
         </div>
@@ -550,15 +582,35 @@ function isPrincipalSponsorProposal(role: ProposalRole): boolean {
   return role.type === "sponsor-ninong" || role.type === "sponsor-ninang"
 }
 
+const CEREMONY_BEARER_ROLE_IDS = new Set([
+  "ring-bearer",
+  "coin-bearer",
+  "bible-bearer",
+  "herald-bearer",
+])
+
+function isCeremonyBearerProposal(role: ProposalRole): boolean {
+  return CEREMONY_BEARER_ROLE_IDS.has(role.id)
+}
+
+function isFlowerGirlProposal(role: ProposalRole): boolean {
+  return role.id === "flower-girl"
+}
+
 function ProposalPersonalLetter({
   inviteeName,
   roleTitle,
   principalSponsor = false,
+  ceremonyBearer = false,
+  flowerGirl = false,
 }: {
   inviteeName: string
   roleTitle: string
   principalSponsor?: boolean
+  ceremonyBearer?: boolean
+  flowerGirl?: boolean
 }) {
+  const playfulInvite = ceremonyBearer || flowerGirl
   const siteConfig = useSiteConfig()
   const groom = siteConfig.couple.groomNickname || siteConfig.couple.groom
   const bride = siteConfig.couple.brideNickname || siteConfig.couple.bride
@@ -573,31 +625,85 @@ function ProposalPersonalLetter({
 
   return (
     <div
-      className="mx-auto w-full max-w-lg space-y-5 text-center sm:space-y-7"
+      className={
+        playfulInvite
+          ? "mx-auto w-full max-w-lg space-y-4 text-center sm:space-y-7"
+          : "mx-auto w-full max-w-lg space-y-5 text-center sm:space-y-7"
+      }
       style={{ color: palette.body, WebkitFontSmoothing: "antialiased" }}
     >
       <div className="space-y-2">
         <p
-          className={`${theSeasons.className} text-[clamp(1.2rem,5.5vw,1.85rem)] leading-tight tracking-[0.05em] [overflow-wrap:anywhere]`}
+          className={
+            playfulInvite
+              ? `${playfair.className} text-[clamp(1.35rem,6vw,1.85rem)] font-semibold leading-tight tracking-[0.02em] [overflow-wrap:anywhere]`
+              : `${theSeasons.className} text-[clamp(1.2rem,5.5vw,1.85rem)] leading-tight tracking-[0.05em] [overflow-wrap:anywhere]`
+          }
           style={{ color: INK }}
         >
-          Dear {greetingName},
+          {playfulInvite ? "Hi" : "Dear"}{" "}
+          <ProposalMixedText
+            text={greetingName}
+            className="[overflow-wrap:anywhere]"
+            specialClassName={`${inter.className} inline-block align-baseline text-[1em] font-semibold not-italic leading-none tracking-normal`}
+          />
+          ,
         </p>
         <OrnamentalDivider compact />
       </div>
 
       <div
-        className={`font-goudy-italic mx-auto max-w-md space-y-3 text-pretty text-[0.9375rem] leading-relaxed sm:space-y-3.5 sm:text-base ${sectionType.textRelaxed}`}
+        className={
+          playfulInvite
+            ? ceremonyBearerBodyClass
+            : `font-goudy-italic mx-auto max-w-md space-y-3 text-pretty text-[0.9375rem] leading-relaxed sm:space-y-3.5 sm:text-base ${sectionType.textRelaxed}`
+        }
       >
-        <p>We have some wonderful news that we would love to share with you.</p>
-        <p>
-          We are happy and excited to announce that we are getting married and will be beginning a
-          new chapter of our lives together.
-        </p>
+        {playfulInvite ? (
+          <>
+            <p>
+              <ProposalMixedText text="We have a very special day coming up, and we would love for you to be part of it! 🤍" />
+            </p>
+            <div className="flex flex-col items-center gap-0">
+              <p
+                className={`${theSeasons.className} not-italic text-[clamp(0.95rem,4.2vw,1.35rem)] leading-snug tracking-[0.06em] uppercase sm:tracking-[0.08em]`}
+                style={{ color: INK }}
+              >
+                {groom}
+                <span
+                  className={`${aboveTheBeyond.className} mx-1.5 inline-block text-[1.1em] normal-case tracking-normal sm:mx-2`}
+                  style={{ color: SCRIPT_GREEN }}
+                  aria-hidden
+                >
+                  &
+                </span>
+                {bride}
+              </p>
+              <p
+                className={`${playfair.className} mt-3 text-[clamp(0.875rem,3.8vw,1.05rem)] font-medium normal-case leading-snug tracking-[0.02em] sm:mt-4 sm:text-base`}
+                style={{ color: INK }}
+              >
+                are getting married!
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <p>We have some wonderful news that we would love to share with you.</p>
+            <p>
+              We are happy and excited to announce that we are getting married and will be beginning
+              a new chapter of our lives together.
+            </p>
+          </>
+        )}
       </div>
 
       <div
-        className="relative mx-auto max-w-md overflow-hidden rounded-xl border px-4 py-5 sm:px-7 sm:py-7"
+        className={
+          playfulInvite
+            ? "relative mx-auto max-w-md overflow-hidden rounded-xl border px-3 py-4 sm:px-7 sm:py-7"
+            : "relative mx-auto max-w-md overflow-hidden rounded-xl border px-4 py-5 sm:px-7 sm:py-7"
+        }
         style={{ background: INNER_SURFACE, borderColor: BORDER_SOFT }}
       >
         <div
@@ -611,48 +717,74 @@ function ProposalPersonalLetter({
         >
           Save the Date
         </p>
-        <p
-          className={`${theSeasons.className} relative mt-3 text-[clamp(1.2rem,4.2vw,1.55rem)] tracking-[0.1em] uppercase`}
-          style={{ color: INK }}
-        >
-          {groom}
-          <span
-            className={`${aboveTheBeyond.className} mx-2 inline-block text-[1.2em] normal-case tracking-normal`}
-            style={{ color: SCRIPT_GREEN }}
-            aria-hidden
+        {!playfulInvite ? (
+          <p
+            className={`${theSeasons.className} relative mt-3 text-[clamp(1.2rem,4.2vw,1.55rem)] tracking-[0.1em] uppercase`}
+            style={{ color: INK }}
           >
-            &
-          </span>
-          {bride}
-        </p>
+            {groom}
+            <span
+              className={`${aboveTheBeyond.className} mx-2 inline-block text-[1.2em] normal-case tracking-normal`}
+              style={{ color: SCRIPT_GREEN }}
+              aria-hidden
+            >
+              &
+            </span>
+            {bride}
+          </p>
+        ) : null}
         <div
-          className={`${cinzel.className} relative mt-3 space-y-1 text-[0.625rem] font-medium tracking-[0.1em] sm:space-y-0 sm:text-xs sm:tracking-[0.14em]`}
+          className={`${cinzel.className} relative mt-3 space-y-1 text-[0.625rem] font-medium tracking-[0.08em] sm:space-y-0 sm:text-xs sm:tracking-[0.14em]`}
           style={{ color: palette.bodySoft }}
         >
-          <p className="sm:inline">
-            {ceremonyDate}
-            <span className="mx-1.5 hidden opacity-40 sm:inline" aria-hidden>
-              ·
-            </span>
-          </p>
-          <p className="sm:inline">
-            {ceremonyDay}
-            <span className="mx-1.5 hidden opacity-40 sm:inline" aria-hidden>
-              ·
-            </span>
-            {ceremonyTime}
-          </p>
+          {playfulInvite ? (
+            <>
+              <p className="hidden sm:block">
+                {ceremonyDate} | {ceremonyDay} | {ceremonyTime}
+              </p>
+              <div className="flex flex-col gap-1 sm:hidden">
+                <p className="text-[0.6875rem] tracking-[0.06em]">{ceremonyDate}</p>
+                <p className="text-[0.6875rem] tracking-[0.06em]">
+                  {ceremonyDay}
+                  <span className="mx-1.5 opacity-50" aria-hidden>
+                    ·
+                  </span>
+                  {ceremonyTime}
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="sm:inline">
+                {ceremonyDate}
+                <span className="mx-1.5 hidden opacity-40 sm:inline" aria-hidden>
+                  ·
+                </span>
+              </p>
+              <p className="sm:inline">
+                {ceremonyDay}
+                <span className="mx-1.5 hidden opacity-40 sm:inline" aria-hidden>
+                  ·
+                </span>
+                {ceremonyTime}
+              </p>
+            </>
+          )}
         </div>
         <p
-          className={`font-goudy-italic relative mx-auto mt-3 flex max-w-sm items-start justify-center gap-1.5 text-center text-[0.8125rem] leading-relaxed sm:text-sm`}
+          className={
+            playfulInvite
+              ? `${playfair.className} relative mx-auto mt-3 flex max-w-sm items-start justify-center gap-1.5 px-0.5 text-center text-[0.8125rem] font-medium leading-snug sm:text-sm`
+              : `font-goudy-italic relative mx-auto mt-3 flex max-w-sm items-start justify-center gap-1.5 text-center text-[0.8125rem] leading-relaxed sm:text-sm`
+          }
         >
           <MapPin
             className="mt-0.5 h-3.5 w-3.5 shrink-0 sm:mt-1"
             style={{ color: palette.label }}
             aria-hidden
           />
-          <span>
-            {principalSponsor
+          <span className="text-left sm:text-center">
+            {principalSponsor || playfulInvite
               ? "San Bartolome Parish, Magalang, Pampanga"
               : `${venueName}${venueDetail ? `, ${venueDetail}` : ""}`}
           </span>
@@ -660,9 +792,33 @@ function ProposalPersonalLetter({
       </div>
 
       <div
-        className={`font-goudy-italic mx-auto max-w-md space-y-3 text-pretty text-[0.9375rem] leading-relaxed sm:space-y-3.5 sm:text-base ${sectionType.textRelaxed}`}
+        className={
+          playfulInvite
+            ? ceremonyBearerBodyClass
+            : `font-goudy-italic mx-auto max-w-md space-y-3 text-pretty text-[0.9375rem] leading-relaxed sm:space-y-3.5 sm:text-base ${sectionType.textRelaxed}`
+        }
       >
-        {principalSponsor ? (
+        {flowerGirl ? (
+          <>
+            <p>
+              Our wedding day wouldn&apos;t be complete without some extra sweetness, smiles, and a
+              little bit of magic.
+            </p>
+            <p className={ceremonyBearerLabelClass} style={{ color: palette.label }}>
+              And we have a very special role we would love for you to have.
+            </p>
+          </>
+        ) : ceremonyBearer ? (
+          <>
+            <p>
+              Our wedding day is a very important moment for us, and we would love to have you take
+              part in making it even more special.
+            </p>
+            <p className={ceremonyBearerLabelClass} style={{ color: palette.label }}>
+              So we have a very important question for you:
+            </p>
+          </>
+        ) : principalSponsor ? (
           <>
             <p>This is not a general invitation. This is a personal ask, especially meant for you.</p>
             <div className="py-1">
@@ -706,7 +862,7 @@ function ProposalPersonalLetter({
         )}
       </div>
 
-      {!principalSponsor && inviteeName.trim() ? (
+      {!principalSponsor && !playfulInvite && inviteeName.trim() ? (
         <div
           className="mx-auto grid max-w-md grid-cols-1 gap-px overflow-hidden rounded-xl border sm:grid-cols-2"
           style={{ borderColor: BORDER_SOFT, background: GOLD_BORDER_SOFT }}
@@ -745,7 +901,7 @@ function ProposalPersonalLetter({
         </div>
       ) : null}
 
-      {!principalSponsor ? (
+      {!principalSponsor && !playfulInvite ? (
         <p
           className={`${cinzel.className} text-[0.65rem] font-semibold uppercase tracking-[0.16em] sm:text-xs sm:tracking-[0.2em]`}
           style={{ color: palette.label }}
@@ -769,23 +925,38 @@ function ProposalAskSection({
   onYes,
   onNo,
   principalSponsor = false,
+  ceremonyBearer = false,
+  flowerGirl = false,
 }: {
   roleTitle: string
   submitting?: boolean
   onYes: () => void
   onNo: () => void
   principalSponsor?: boolean
+  ceremonyBearer?: boolean
+  flowerGirl?: boolean
 }) {
+  const playfulInvite = ceremonyBearer || flowerGirl
   return (
     <div
-      className="relative mx-auto mt-1 w-full max-w-lg rounded-xl border px-3 py-5 sm:mt-4 sm:rounded-2xl sm:px-7 sm:py-9"
+      className={
+        playfulInvite
+          ? "relative mx-auto mt-2 w-full max-w-lg rounded-xl border px-2.5 py-4 sm:mt-4 sm:rounded-2xl sm:px-7 sm:py-9"
+          : "relative mx-auto mt-1 w-full max-w-lg rounded-xl border px-3 py-5 sm:mt-4 sm:rounded-2xl sm:px-7 sm:py-9"
+      }
       style={{ borderColor: BORDER_SOFT, background: "color-mix(in srgb, var(--color-welcome-bg-soft) 55%, transparent)" }}
     >
-      <div className="mb-6 flex justify-center">
+      <div className={playfulInvite ? "mb-4 flex justify-center sm:mb-6" : "mb-6 flex justify-center"}>
         <DividerLine className="w-full max-w-[12rem]" />
       </div>
 
-      <div className="relative mx-auto mb-4 h-[9.5rem] w-[6rem] sm:mb-7 sm:h-[13.5rem] sm:w-[8.5rem]">
+      <div
+        className={
+          playfulInvite
+            ? "relative mx-auto mb-3 h-[7.25rem] w-[4.75rem] sm:mb-7 sm:h-[13.5rem] sm:w-[8.5rem]"
+            : "relative mx-auto mb-4 h-[9.5rem] w-[6rem] sm:mb-7 sm:h-[13.5rem] sm:w-[8.5rem]"
+        }
+      >
         <div
           className="absolute -inset-2 rounded-full opacity-70 blur-xl"
           style={ambientGlowStyle}
@@ -807,46 +978,73 @@ function ProposalAskSection({
       </div>
 
       <h2
-        className={`${theSeasons.className} mx-auto max-w-md text-[clamp(1.1rem,5.2vw,1.75rem)] leading-snug tracking-[0.03em] sm:tracking-[0.04em]`}
+        className={
+          playfulInvite
+            ? `${playfair.className} mx-auto max-w-md text-[clamp(1.05rem,4.8vw,1.75rem)] font-semibold leading-snug tracking-[0.01em] sm:tracking-[0.02em]`
+            : `${theSeasons.className} mx-auto max-w-md text-[clamp(1.1rem,5.2vw,1.75rem)] leading-snug tracking-[0.03em] sm:tracking-[0.04em]`
+        }
         style={{ color: INK }}
       >
         Will you be our{" "}
-        <span className="block pt-0.5 capitalize [overflow-wrap:anywhere] sm:pt-1" style={goldGradientText}>
+        <span
+          className={
+            playfulInvite
+              ? `mt-1 block pt-0.5 capitalize [overflow-wrap:anywhere] sm:mt-0 sm:inline sm:pt-0 ${theSeasons.className} tracking-[0.04em]`
+              : "block pt-0.5 capitalize [overflow-wrap:anywhere] sm:pt-1"
+          }
+          style={goldGradientText}
+        >
           {roleTitle}?
         </span>
       </h2>
 
       <p
-        className={`font-goudy-italic mx-auto mt-3 max-w-md text-[0.9375rem] leading-relaxed sm:mt-4 sm:text-base ${sectionType.textRelaxed}`}
+        className={
+          playfulInvite
+            ? `${playfair.className} mx-auto mt-2.5 max-w-md text-[0.875rem] font-medium leading-[1.65] sm:mt-4 sm:text-base sm:leading-relaxed`
+            : `font-goudy-italic mx-auto mt-3 max-w-md text-[0.9375rem] leading-relaxed sm:mt-4 sm:text-base ${sectionType.textRelaxed}`
+        }
         style={{ color: palette.body }}
       >
-        {principalSponsor
-          ? "Having you share this moment with us would truly make our wedding more meaningful."
-          : "We know that being part of the wedding party comes with time, effort, and a little bit of responsibility. More than anything, we hope it will be a chance for us to celebrate this beautiful moment together."}
+        {flowerGirl
+          ? "We would love to have you walk down the aisle and help make our wedding day even more beautiful and memorable."
+          : ceremonyBearer
+            ? "We would be so happy to have you walk down the aisle and carry this special part of our wedding ceremony."
+            : principalSponsor
+              ? "Having you share this moment with us would truly make our wedding more meaningful."
+              : "We know that being part of the wedding party comes with time, effort, and a little bit of responsibility. More than anything, we hope it will be a chance for us to celebrate this beautiful moment together."}
       </p>
 
-      <div className="mx-auto mt-6 flex w-full max-w-sm flex-col gap-2 sm:mt-9 sm:gap-2.5">
+      <div className="mx-auto mt-5 flex w-full max-w-sm flex-col gap-2.5 sm:mt-9 sm:gap-2.5">
         <button
           type="button"
           disabled={submitting}
           onClick={onYes}
-          className={`${primaryBtnClass} min-h-12 w-full`}
+          className={`${playfulInvite ? ceremonyBearerPrimaryBtnClass : primaryBtnClass} min-h-12 w-full`}
           style={primaryBtnStyle}
         >
-          {submitting
-            ? "Saving..."
-            : principalSponsor
-              ? "Yes, I'd Be Honored 🤍"
-              : "Yes, I'd Love To!"}
+          {submitting ? (
+            "Saving..."
+          ) : flowerGirl ? (
+            <ProposalMixedText text="Yes, I'd Love To! 🌸" />
+          ) : ceremonyBearer ? (
+            <ProposalMixedText text="Yes, I'd Love To! 🤍" />
+          ) : principalSponsor ? (
+            <ProposalMixedText text="Yes, I'd Be Honored 🤍" />
+          ) : (
+            "Yes, I'd Love To!"
+          )}
         </button>
         <button
           type="button"
           disabled={submitting}
           onClick={onNo}
-          className={`${secondaryBtnClass} min-h-11 w-full`}
+          className={`${playfulInvite ? ceremonyBearerSecondaryBtnClass : secondaryBtnClass} min-h-11 w-full`}
           style={secondaryBtnStyle}
         >
-          {principalSponsor ? (
+          {playfulInvite ? (
+            <ProposalMixedText text="Maybe Next Time 🤍" />
+          ) : principalSponsor ? (
             "No, With Love & Warm Wishes"
           ) : (
             <>
@@ -923,6 +1121,9 @@ function ProposalPageInner({ role }: ProposalPageProps) {
   const brideSign = siteConfig.couple.brideNickname || siteConfig.couple.bride
   const confirmedDisplayName = (inviteeFromLink || preferredName).trim()
   const principalSponsor = isPrincipalSponsorProposal(role)
+  const ceremonyBearer = isCeremonyBearerProposal(role)
+  const flowerGirl = isFlowerGirlProposal(role)
+  const playfulInvite = ceremonyBearer || flowerGirl
 
   const submitResponse = async (status: "Confirmed" | "Declined", name: string) => {
     const response = await fetch("/api/proposal-responses", {
@@ -1058,12 +1259,14 @@ function ProposalPageInner({ role }: ProposalPageProps) {
             ? { duration: 1.08, ease: proposalEntryEase, delay: 0.86 }
             : { duration: 0.01 }
         }
-        className={`relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center justify-start px-1 pt-8 sm:justify-center sm:px-0 sm:pt-0 min-h-0 sm:min-h-[calc(100dvh-8rem)] pb-4 ${proposalVisible ? "" : "pointer-events-none"}`}
+        className={`relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center justify-start pt-8 sm:justify-center sm:pt-0 min-h-0 sm:min-h-[calc(100dvh-8rem)] pb-4 ${playfulInvite ? "px-0.5 sm:px-0" : "px-1 sm:px-0"} ${proposalVisible ? "" : "pointer-events-none"}`}
         style={{ color: palette.body }}
       >
         {proposalVisible && <ProposalCornerDecorations />}
 
-        {proposalVisible && flowState === "question" && <ProposalPageHeader />}
+        {proposalVisible && flowState === "question" && !playfulInvite && (
+          <ProposalPageHeader />
+        )}
 
         <AnimatePresence mode="wait">
           {flowState === "question" && (
@@ -1075,12 +1278,14 @@ function ProposalPageInner({ role }: ProposalPageProps) {
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
-              <ProposalCard>
+              <ProposalCard ceremonyBearer={playfulInvite}>
               <div className="relative z-10 w-full space-y-1 sm:space-y-2">
                 <ProposalPersonalLetter
                   inviteeName={inviteeFromLink || preferredName}
                   roleTitle={role.title}
                   principalSponsor={principalSponsor}
+                  ceremonyBearer={ceremonyBearer}
+                  flowerGirl={flowerGirl}
                 />
 
                 {validationError && flowState === "question" && (
@@ -1091,11 +1296,13 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                   roleTitle={role.title}
                   submitting={submitting}
                   principalSponsor={principalSponsor}
+                  ceremonyBearer={ceremonyBearer}
+                  flowerGirl={flowerGirl}
                   onYes={() => void handleYesClick()}
                   onNo={() => setFlowState("no_clicked")}
                 />
 
-                {!principalSponsor ? (
+                {!principalSponsor && !playfulInvite ? (
                   <div className="pt-4 sm:pt-6">
                     <OrnamentalDivider compact />
                     <p
@@ -1127,7 +1334,7 @@ function ProposalPageInner({ role }: ProposalPageProps) {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4 }}
             >
-              <ProposalCard>
+              <ProposalCard ceremonyBearer={playfulInvite}>
               <div className="relative z-10 w-full space-y-4 py-1 sm:space-y-6 sm:py-3">
                 <ProposalFlowHeader
                   icon={<Check className="h-6 w-6" style={{ color: INK }} />}
@@ -1216,7 +1423,7 @@ function ProposalPageInner({ role }: ProposalPageProps) {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
             >
-              <ProposalCard>
+              <ProposalCard ceremonyBearer={playfulInvite}>
               <div className="relative z-10 space-y-4">
                 <ProposalFlowHeader
                   animated
@@ -1229,42 +1436,78 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                     boxShadow:
                       "0 8px 24px color-mix(in srgb, var(--color-welcome-gold) 22%, transparent)",
                   }}
-                  main="You Said Yes"
-                  script="thank you"
+                  main={
+                    playfulInvite ? (
+                      <ProposalMixedText text="Yay!" />
+                    ) : (
+                      "You Said Yes"
+                    )
+                  }
+                  script={playfulInvite ? "you said yes!" : "thank you"}
                 />
 
                 <ProposalFlowSubheader>
-                  {principalSponsor ? "Thank you for saying yes!" : "We couldn&apos;t be happier"}
+                  {flowerGirl ? (
+                    <ProposalMixedText text="We are so happy to have you as our Flower Girl!" />
+                  ) : ceremonyBearer ? (
+                    <ProposalMixedText text="We are so excited to have you on our team!" />
+                  ) : principalSponsor ? (
+                    <ProposalMixedText text="Thank you for saying yes!" />
+                  ) : (
+                    "We couldn&apos;t be happier"
+                  )}
                 </ProposalFlowSubheader>
 
-                <div
-                  className="mx-auto mb-2 max-w-sm rounded-2xl px-6 py-4 shadow-sm backdrop-blur-sm sm:mb-4"
-                  style={{ border: `1px solid ${BORDER_SOFT}`, backgroundColor: INNER_SURFACE }}
-                >
-                  <span
-                    className={`${cinzel.className} mb-1 block text-[10px] font-semibold tracking-[0.16em] uppercase sm:text-[12px]`}
-                    style={labelStyle(palette.label)}
+                {!playfulInvite ? (
+                  <div
+                    className="mx-auto mb-2 max-w-sm rounded-2xl px-6 py-4 shadow-sm backdrop-blur-sm sm:mb-4"
+                    style={{ border: `1px solid ${BORDER_SOFT}`, backgroundColor: INNER_SURFACE }}
                   >
-                    Registered name
-                  </span>
+                    <span
+                      className={`${cinzel.className} mb-1 block text-[10px] font-semibold tracking-[0.16em] uppercase sm:text-[12px]`}
+                      style={labelStyle(palette.label)}
+                    >
+                      Registered name
+                    </span>
+                    <p
+                      className={`${theSeasons.className} ${sectionType.text} font-medium`}
+                      style={{ ...nameStyle, color: palette.heading }}
+                    >
+                      {confirmedDisplayName || preferredName}
+                    </p>
+                    <span
+                      className={`${cinzel.className} mt-2 block text-[10px] font-semibold tracking-[0.14em] uppercase sm:text-[11px]`}
+                      style={{ color: palette.bodySoft }}
+                    >
+                      {principalSponsor
+                        ? `Our ${role.title}`
+                        : `Standing as our ${role.title}`}
+                    </span>
+                  </div>
+                ) : (
                   <p
-                    className={`${theSeasons.className} ${sectionType.text} font-medium`}
-                    style={{ ...nameStyle, color: palette.heading }}
+                    className={`${theSeasons.className} mx-auto mb-2 max-w-md text-[clamp(1rem,4vw,1.25rem)] sm:mb-4`}
+                    style={{ color: INK }}
                   >
-                    {confirmedDisplayName || preferredName}
+                    Our {role.title}
                   </p>
-                  <span
-                    className={`${cinzel.className} mt-2 block text-[10px] font-semibold tracking-[0.14em] uppercase sm:text-[11px]`}
-                    style={{ color: palette.bodySoft }}
-                  >
-                    {principalSponsor
-                      ? `Our ${role.title}`
-                      : `Standing as our ${role.title}`}
-                  </span>
-                </div>
+                )}
 
-                <ProposalFlowBody className="mb-8 max-w-md text-center sm:mb-10">
-                  {principalSponsor ? (
+                <ProposalFlowBody
+                  className={
+                    playfulInvite
+                      ? `mb-8 max-w-md text-center sm:mb-10 ${playfair.className} text-[0.9375rem] font-medium not-italic leading-[1.68] sm:text-base`
+                      : "mb-8 max-w-md text-center sm:mb-10"
+                  }
+                  mixedText={
+                    flowerGirl
+                      ? "We can't wait to see you walk down the aisle and be part of our special day. We hope you have lots of fun, smile big, and enjoy every moment! We can't wait to see you on our big day! 🤍"
+                      : ceremonyBearer
+                        ? `We are so excited to have you as our ${role.title}! We can't wait to see you walk down the aisle and be part of our special day. Your little role will be a very special part of our wedding, and we hope you have lots of fun celebrating with us! See you on our big day! 🤍`
+                        : undefined
+                  }
+                >
+                  {flowerGirl || ceremonyBearer ? null : principalSponsor ? (
                     <>
                       We are truly happy and honored to have you accept this special role in our
                       wedding. Your support means a lot to us, and we look forward to celebrating
@@ -1323,7 +1566,7 @@ function ProposalPageInner({ role }: ProposalPageProps) {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
             >
-              <ProposalCard>
+              <ProposalCard ceremonyBearer={playfulInvite}>
               <div className="relative z-10 space-y-4">
                 <ProposalFlowHeader
                   icon={<X className="h-6 w-6" style={{ color: CHAMPAGNE }} />}
@@ -1333,18 +1576,41 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                     backgroundColor: INNER_SURFACE,
                     color: CHAMPAGNE,
                   }}
-                  main="Thank You"
-                  script="for responding"
+                  main={
+                    playfulInvite ? (
+                      <ProposalMixedText text="That's Okay!" />
+                    ) : (
+                      "Thank You"
+                    )
+                  }
+                  script={playfulInvite ? "we understand" : "for responding"}
                 />
 
                 <ProposalFlowSubheader>
-                  {principalSponsor
-                    ? "We completely understand and respect your decision"
-                    : "We completely understand"}
+                  {playfulInvite ? (
+                    <ProposalMixedText text="We completely understand 😊" />
+                  ) : principalSponsor ? (
+                    "We completely understand and respect your decision"
+                  ) : (
+                    "We completely understand"
+                  )}
                 </ProposalFlowSubheader>
 
-                <ProposalFlowBody className="mb-8 max-w-lg text-center sm:mb-10">
-                  {principalSponsor ? (
+                <ProposalFlowBody
+                  className={
+                    playfulInvite
+                      ? `mb-8 max-w-lg text-center sm:mb-10 ${playfair.className} text-[0.9375rem] font-medium not-italic leading-[1.68] sm:text-base`
+                      : "mb-8 max-w-lg text-center sm:mb-10"
+                  }
+                  mixedText={
+                    flowerGirl
+                      ? "Thank you for taking the time to consider being our Flower Girl. Whether you're able to be part of our wedding or not, we hope you know how special you are to us. We'll still be very happy to celebrate our special day with you!"
+                      : ceremonyBearer
+                        ? `Thank you for considering being our ${role.title}. We hope you know that you are special to us, and we'll be happy to have you celebrate our wedding with us in any way.`
+                        : undefined
+                  }
+                >
+                  {flowerGirl || ceremonyBearer ? null : principalSponsor ? (
                     <>
                       Thank you for taking the time to read our letter and consider our request. We
                       sincerely appreciate your kindness and the thought you have given to our
@@ -1393,7 +1659,7 @@ function ProposalPageInner({ role }: ProposalPageProps) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
             >
-              <ProposalCard>
+              <ProposalCard ceremonyBearer={playfulInvite}>
               <div className="relative z-10 space-y-4">
                 <ProposalFlowHeader
                   icon={<Heart className="h-6 w-6" style={{ color: CHAMPAGNE }} />}
@@ -1406,21 +1672,50 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                   script="successfully"
                 />
 
-                <ProposalFlowSubheader>Your message has reached us</ProposalFlowSubheader>
+                <ProposalFlowSubheader>
+                  {playfulInvite ? "Thank you for letting us know" : "Your message has reached us"}
+                </ProposalFlowSubheader>
 
-                <ProposalFlowBody className="mb-6 max-w-md text-center sm:mb-8">
-                  {principalSponsor
-                    ? "We are simply grateful to have shared this moment with you. Your love and warmest wishes mean the world to us."
-                    : "We hope you'll still celebrate this beautiful day with us in your own way. Your love and warmest wishes mean the world to us."}
+                <ProposalFlowBody
+                  className={
+                    playfulInvite
+                      ? `mb-6 max-w-md text-center sm:mb-8 ${playfair.className} text-[0.9375rem] font-medium not-italic leading-[1.65] sm:text-base`
+                      : "mb-6 max-w-md text-center sm:mb-8"
+                  }
+                  mixedText={
+                    playfulInvite
+                      ? "We hope you know how special you are to us, and we look forward to celebrating with you."
+                      : undefined
+                  }
+                >
+                  {!playfulInvite
+                    ? principalSponsor
+                      ? "We are simply grateful to have shared this moment with you. Your love and warmest wishes mean the world to us."
+                      : "We hope you'll still celebrate this beautiful day with us in your own way. Your love and warmest wishes mean the world to us."
+                    : null}
                 </ProposalFlowBody>
 
                 <p
                   className={`${cinzel.className} text-center text-[0.58rem] font-medium uppercase tracking-[0.16em]`}
                   style={{ color: palette.bodySoft }}
                 >
-                  With love and warmest wishes,
-                  <br />
-                  {groomSign} & {brideSign}
+                  {playfulInvite ? (
+                    <>
+                      With lots of love,
+                      <br />
+                      {groomSign} & {brideSign}{" "}
+                      <ProposalMixedText
+                        text="🤍"
+                        specialClassName={`${inter.className} inline-block align-baseline text-[1em] font-medium not-italic`}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      With love and warmest wishes,
+                      <br />
+                      {groomSign} & {brideSign}
+                    </>
+                  )}
                 </p>
 
                 <div className="flex items-center justify-center pb-2 sm:pb-3">

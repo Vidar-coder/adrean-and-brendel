@@ -24,6 +24,11 @@ import {
 } from "@/lib/proposal-roles"
 import { buildProposalInviteUrl } from "@/lib/proposal-invite-link"
 import {
+  ProposalMixedText,
+  ProposalMixedTextBlock,
+  proposalMixedTextInter,
+} from "@/lib/proposal-mixed-text"
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -70,7 +75,7 @@ export function ProposalDashboard() {
     if (origin) {
       return buildProposalInviteUrl(origin, roleId, invitee)
     }
-    return `/will-you-be-proposal/${roleId}`
+    return `/will-you-be-proposal/${encodeURIComponent(roleId)}`
   }
 
   const handleCopyLink = (roleId: string) => {
@@ -393,8 +398,8 @@ ${groom} & ${bride}`
                 <p className="text-[10px] font-bold tracking-widest text-[#8B6F47] uppercase">
                   Role offer
                 </p>
-                <p className="mt-1 text-base font-semibold text-[#111827]">
-                  {selectedInviteRole.title}
+                <p className={`${proposalMixedTextInter.className} mt-1 text-base font-semibold text-[#111827]`}>
+                  <ProposalMixedText text={selectedInviteRole.title} />
                 </p>
                 <p className="mt-0.5 text-xs text-[#6B7280]">{selectedInviteRole.category}</p>
               </div>
@@ -412,10 +417,25 @@ ${groom} & ${bride}`
                   setInviteeName(e.target.value)
                   if (e.target.value.trim()) setInviteNameError("")
                 }}
-                className="box-border w-full min-w-0 rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#A67C52]/30 focus:outline-none"
+                className={`${proposalMixedTextInter.className} box-border w-full min-w-0 rounded-xl border border-[#E5E7EB] px-4 py-2.5 text-sm font-normal not-italic focus:ring-2 focus:ring-[#A67C52]/30 focus:outline-none`}
               />
-              <p className="mt-1.5 text-xs text-[#9CA3AF]">
-                Shown on the proposal as &ldquo;Dear {inviteeName.trim() || "Name"}&rdquo;
+              <p className={`${proposalMixedTextInter.className} mt-1.5 text-xs font-normal text-[#9CA3AF]`}>
+                Shown on the proposal as &ldquo;
+                {selectedInviteRole &&
+                (selectedInviteRole.id === "flower-girl" ||
+                  [
+                    "ring-bearer",
+                    "coin-bearer",
+                    "bible-bearer",
+                    "herald-bearer",
+                  ].includes(selectedInviteRole.id))
+                  ? "Hi "
+                  : "Dear "}
+                <ProposalMixedText
+                  text={inviteeName.trim() || "Name"}
+                  specialClassName={`${proposalMixedTextInter.className} inline align-baseline text-[1em] font-normal not-italic`}
+                />
+                &rdquo;
               </p>
               {inviteNameError && (
                 <p className="mt-2 text-xs font-medium text-rose-600">{inviteNameError}</p>
@@ -426,11 +446,10 @@ ${groom} & ${bride}`
               <label className="mb-1.5 block text-xs font-semibold tracking-wider text-[#6B7280] uppercase">
                 Message preview
               </label>
-              <textarea
-                readOnly
-                rows={8}
-                value={getInviteMessage()}
-                className="box-border w-full min-w-0 resize-none overflow-x-hidden rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm leading-relaxed break-words whitespace-pre-wrap text-[#374151] focus:outline-none"
+              <ProposalMixedTextBlock
+                text={getInviteMessage()}
+                className={`${proposalMixedTextInter.className} box-border max-h-52 min-h-[10rem] w-full min-w-0 overflow-y-auto overflow-x-hidden rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm font-normal leading-relaxed break-words text-[#374151]`}
+                lineClassName="min-h-[1.35em]"
               />
             </div>
 

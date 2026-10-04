@@ -83,7 +83,7 @@ export const proposalRoleDefinitions: ProposalRoleDefinition[] = [
       "To carry the Bible with reverence during our wedding ceremony — honoring the Word that guides our faith and our marriage, and playing a meaningful part as we pledge our lives to one another before God.",
   },
   {
-    id: "Herald Bearer",
+    id: "herald-bearer",
     title: "Herald Bearer",
     category: "Entourage",
     type: "entourage",
@@ -151,4 +151,6 @@ export const proposalRoleDefinitions: ProposalRoleDefinition[] = [
 export const proposalRoleIdAliases: Record<string, string> = {
   "matron-of-honor": "honor-attendant",
   "maid-of-honor": "honor-attendant",
+  "Herald Bearer": "herald-bearer",
+  "herald bearer": "herald-bearer",
 }
