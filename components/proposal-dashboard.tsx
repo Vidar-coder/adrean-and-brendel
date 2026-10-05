@@ -428,6 +428,8 @@ ${groom} & ${bride}`
                     "coin-bearer",
                     "bible-bearer",
                     "herald-bearer",
+                    "little-bride",
+                    "little-groomsman",
                   ].includes(selectedInviteRole.id))
                   ? "Hi "
                   : "Dear "}

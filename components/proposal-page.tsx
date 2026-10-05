@@ -597,20 +597,33 @@ function isFlowerGirlProposal(role: ProposalRole): boolean {
   return role.id === "flower-girl"
 }
 
+const LITTLE_ATTENDANT_ROLE_IDS = new Set(["little-bride", "little-groomsman"])
+
+function isLittleAttendantProposal(role: ProposalRole): boolean {
+  return LITTLE_ATTENDANT_ROLE_IDS.has(role.id)
+}
+
+function isBearerStylePlayfulInvite(role: ProposalRole): boolean {
+  return isCeremonyBearerProposal(role) || isLittleAttendantProposal(role)
+}
+
 function ProposalPersonalLetter({
   inviteeName,
   roleTitle,
   principalSponsor = false,
   ceremonyBearer = false,
   flowerGirl = false,
+  littleAttendant = false,
 }: {
   inviteeName: string
   roleTitle: string
   principalSponsor?: boolean
   ceremonyBearer?: boolean
   flowerGirl?: boolean
+  littleAttendant?: boolean
 }) {
-  const playfulInvite = ceremonyBearer || flowerGirl
+  const bearerStyleInvite = ceremonyBearer || littleAttendant
+  const playfulInvite = bearerStyleInvite || flowerGirl
   const siteConfig = useSiteConfig()
   const groom = siteConfig.couple.groomNickname || siteConfig.couple.groom
   const bride = siteConfig.couple.brideNickname || siteConfig.couple.bride
@@ -808,7 +821,7 @@ function ProposalPersonalLetter({
               And we have a very special role we would love for you to have.
             </p>
           </>
-        ) : ceremonyBearer ? (
+        ) : bearerStyleInvite ? (
           <>
             <p>
               Our wedding day is a very important moment for us, and we would love to have you take
@@ -927,6 +940,7 @@ function ProposalAskSection({
   principalSponsor = false,
   ceremonyBearer = false,
   flowerGirl = false,
+  littleAttendant = false,
 }: {
   roleTitle: string
   submitting?: boolean
@@ -935,8 +949,10 @@ function ProposalAskSection({
   principalSponsor?: boolean
   ceremonyBearer?: boolean
   flowerGirl?: boolean
+  littleAttendant?: boolean
 }) {
-  const playfulInvite = ceremonyBearer || flowerGirl
+  const bearerStyleInvite = ceremonyBearer || littleAttendant
+  const playfulInvite = bearerStyleInvite || flowerGirl
   return (
     <div
       className={
@@ -1008,7 +1024,7 @@ function ProposalAskSection({
       >
         {flowerGirl
           ? "We would love to have you walk down the aisle and help make our wedding day even more beautiful and memorable."
-          : ceremonyBearer
+          : bearerStyleInvite
             ? "We would be so happy to have you walk down the aisle and carry this special part of our wedding ceremony."
             : principalSponsor
               ? "Having you share this moment with us would truly make our wedding more meaningful."
@@ -1123,7 +1139,9 @@ function ProposalPageInner({ role }: ProposalPageProps) {
   const principalSponsor = isPrincipalSponsorProposal(role)
   const ceremonyBearer = isCeremonyBearerProposal(role)
   const flowerGirl = isFlowerGirlProposal(role)
-  const playfulInvite = ceremonyBearer || flowerGirl
+  const littleAttendant = isLittleAttendantProposal(role)
+  const bearerStyleInvite = isBearerStylePlayfulInvite(role)
+  const playfulInvite = bearerStyleInvite || flowerGirl
 
   const submitResponse = async (status: "Confirmed" | "Declined", name: string) => {
     const response = await fetch("/api/proposal-responses", {
@@ -1286,6 +1304,7 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                   principalSponsor={principalSponsor}
                   ceremonyBearer={ceremonyBearer}
                   flowerGirl={flowerGirl}
+                  littleAttendant={littleAttendant}
                 />
 
                 {validationError && flowState === "question" && (
@@ -1298,6 +1317,7 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                   principalSponsor={principalSponsor}
                   ceremonyBearer={ceremonyBearer}
                   flowerGirl={flowerGirl}
+                  littleAttendant={littleAttendant}
                   onYes={() => void handleYesClick()}
                   onNo={() => setFlowState("no_clicked")}
                 />
@@ -1447,8 +1467,10 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                 />
 
                 <ProposalFlowSubheader>
-                  {flowerGirl ? (
-                    <ProposalMixedText text="We are so happy to have you as our Flower Girl!" />
+                  {flowerGirl || littleAttendant ? (
+                    <ProposalMixedText
+                      text={`We are so excited to have you as our ${role.title}!`}
+                    />
                   ) : ceremonyBearer ? (
                     <ProposalMixedText text="We are so excited to have you on our team!" />
                   ) : principalSponsor ? (
@@ -1502,12 +1524,12 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                   mixedText={
                     flowerGirl
                       ? "We can't wait to see you walk down the aisle and be part of our special day. We hope you have lots of fun, smile big, and enjoy every moment! We can't wait to see you on our big day! 🤍"
-                      : ceremonyBearer
+                      : bearerStyleInvite
                         ? `We are so excited to have you as our ${role.title}! We can't wait to see you walk down the aisle and be part of our special day. Your little role will be a very special part of our wedding, and we hope you have lots of fun celebrating with us! See you on our big day! 🤍`
                         : undefined
                   }
                 >
-                  {flowerGirl || ceremonyBearer ? null : principalSponsor ? (
+                  {flowerGirl || bearerStyleInvite ? null : principalSponsor ? (
                     <>
                       We are truly happy and honored to have you accept this special role in our
                       wedding. Your support means a lot to us, and we look forward to celebrating
@@ -1605,12 +1627,12 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                   mixedText={
                     flowerGirl
                       ? "Thank you for taking the time to consider being our Flower Girl. Whether you're able to be part of our wedding or not, we hope you know how special you are to us. We'll still be very happy to celebrate our special day with you!"
-                      : ceremonyBearer
+                      : bearerStyleInvite
                         ? `Thank you for considering being our ${role.title}. We hope you know that you are special to us, and we'll be happy to have you celebrate our wedding with us in any way.`
                         : undefined
                   }
                 >
-                  {flowerGirl || ceremonyBearer ? null : principalSponsor ? (
+                  {flowerGirl || bearerStyleInvite ? null : principalSponsor ? (
                     <>
                       Thank you for taking the time to read our letter and consider our request. We
                       sincerely appreciate your kindness and the thought you have given to our
