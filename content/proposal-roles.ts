@@ -101,6 +101,15 @@ export const proposalRoleDefinitions: ProposalRoleDefinition[] = [
       "To walk gracefully down the aisle and add a touch of innocence and charm — bringing light and joy to our ceremony and making the beginning of our forever feel even more special.",
   },
   {
+    id: "little-groomsman",
+    title: "Little Groomsman",
+    category: "Entourage",
+    type: "entourage",
+    roleCategory: "Little Groom",
+    description:
+      "To walk proudly down the aisle with a big heart and a bright smile — bringing charm, joy, and youthful spirit to our ceremony, and standing with us as we begin our journey together.",
+  },
+  {
     id: "candle-sponsor",
     title: "Candle Sponsor",
     category: "Entourage",
