@@ -338,6 +338,8 @@ const HONOR_ATTENDANT_BLOCK_CATEGORIES = [
   "Maid of Honor",
 ] as const
 
+const BEARER_CATEGORIES = ["Ring Bearer", "Bible Bearer", "Coin Bearer"] as const
+
 function normalizeRoleCategory(category: string): string {
   const normalized = category.trim()
   if (normalized.toLowerCase() === "officiating minister") {
@@ -346,7 +348,7 @@ function normalizeRoleCategory(category: string): string {
   const honorAliases: Record<string, string> = {
     "man of honor": "Man of Honor",
     "best man": "Best Man",
-    "maid of honor": "Maid of Honor",
+    "maid of honor": "Matron of Honor",
     "matron of honor": "Matron of Honor",
   }
   const alias = honorAliases[normalized.toLowerCase()]
@@ -1097,7 +1099,6 @@ export function Entourage() {
                 ) {
                   const manOfHonor = grouped["Man of Honor"] || []
                   const matronOfHonor = grouped["Matron of Honor"] || []
-                  const maidOfHonor = grouped["Maid of Honor"] || []
                   const bestMan = grouped["Best Man"] || []
 
                   const firstHonorCategory = HONOR_ATTENDANT_BLOCK_CATEGORIES.find(
@@ -1105,8 +1106,7 @@ export function Entourage() {
                   )
                   if (category !== firstHonorCategory) return null
 
-                  const hasSideHonors = bestMan.length > 0 || maidOfHonor.length > 0
-                  const hasMatron = matronOfHonor.length > 0
+                  const hasSideHonors = bestMan.length > 0 || matronOfHonor.length > 0
 
                   return (
                     <div key="HonorAttendants">
@@ -1129,20 +1129,20 @@ export function Entourage() {
                         </TwoColumnLayout>
                       )}
 
-                      {manOfHonor.length > 0 && (hasSideHonors || hasMatron) && (
+                      {manOfHonor.length > 0 && hasSideHonors && (
                         <div className="flex justify-center py-1.5 sm:py-2 md:py-2.5 mb-2 sm:mb-2.5 md:mb-3">
                           <div className="w-full max-w-md h-px" style={dividerLineStyle} />
                         </div>
                       )}
 
                       {hasSideHonors && (
-                        <TwoColumnLayout leftTitle="Best Man" rightTitle="Maid of Honor">
+                        <TwoColumnLayout leftTitle="Best Man" rightTitle="Matron of Honor">
                           {(() => {
-                            const maxLen = Math.max(bestMan.length, maidOfHonor.length)
+                            const maxLen = Math.max(bestMan.length, matronOfHonor.length)
                             const rows = []
                             for (let i = 0; i < maxLen; i++) {
                               const left = bestMan[i]
-                              const right = maidOfHonor[i]
+                              const right = matronOfHonor[i]
                               rows.push(
                                 <React.Fragment key={`honor-row-${i}`}>
                                   <div
@@ -1172,57 +1172,70 @@ export function Entourage() {
                           })()}
                         </TwoColumnLayout>
                       )}
-
-                      {hasSideHonors && hasMatron && (
-                        <div className="flex justify-center py-1.5 sm:py-2 md:py-2.5 mb-2 sm:mb-2.5 md:mb-3">
-                          <div className="w-full max-w-md h-px" style={dividerLineStyle} />
-                        </div>
-                      )}
-
-                      {hasMatron && (
-                        <TwoColumnLayout singleTitle="Matron of Honor" centerContent={true}>
-                          {matronOfHonor.map((member, idx) => (
-                            <div
-                              key={`matron-of-honor-${idx}-${member.name}`}
-                              className="col-span-2 flex justify-center min-w-0 overflow-hidden px-0.5 sm:px-1"
-                            >
-                              <NameItem member={member} align="center" showRole={false} />
-                            </div>
-                          ))}
-                        </TwoColumnLayout>
-                      )}
                     </div>
                   )
                 }
 
-                // Special handling for Little Groom and Little Bride - combine into single two-column layout
-                if (category === "Little Groom" || category === "Little Bride") {
-                  // Get both little ones groups
-                  const littleGroom = grouped["Little Groom"] || []
-                  const littleBride = grouped["Little Bride"] || []
-                  
-                  // Only render once (when processing "Little Groom")
-                  if (category === "Little Groom") {
-                    return (
-                      <div key="LittleOnes">
-                        {categoryIndex > 0 && (
-                          <div className="flex justify-center py-2 sm:py-2.5 md:py-3 mb-2 sm:mb-2.5 md:mb-3">
-                            <div className="w-full max-w-md h-px" style={dividerLineStyle} />
+                // Little Bride is hidden; Little Groom renders on its own, centered
+                if (category === "Little Bride") return null
+                if (category === "Little Groom") {
+                  return (
+                    <div key="LittleGroom">
+                      {categoryIndex > 0 && (
+                        <div className="flex justify-center py-2 sm:py-2.5 md:py-3 mb-2 sm:mb-2.5 md:mb-3">
+                          <div className="w-full max-w-md h-px" style={dividerLineStyle} />
+                        </div>
+                      )}
+                      <TwoColumnLayout singleTitle="Little Groom" centerContent={true}>
+                        {members.map((member, idx) => (
+                          <div
+                            key={`little-groom-${idx}-${member.name}`}
+                            className="col-span-2 flex justify-center min-w-0 overflow-hidden px-0.5 sm:px-1"
+                          >
+                            <NameItem member={member} align="center" />
                           </div>
-                        )}
-                        <TwoColumnLayout leftTitle="Little Groom" rightTitle="Little Bride">
+                        ))}
+                      </TwoColumnLayout>
+                    </div>
+                  )
+                }
+
+                // Bearers (left) pair with the Flower Girls (right)
+                if (BEARER_CATEGORIES.includes(category as (typeof BEARER_CATEGORIES)[number])) {
+                  const firstBearerCategory = BEARER_CATEGORIES.find(
+                    (bearerCategory) => (grouped[bearerCategory]?.length ?? 0) > 0
+                  )
+                  if (category !== firstBearerCategory) return null
+
+                  const bearers = BEARER_CATEGORIES.flatMap((bearerCategory) =>
+                    (grouped[bearerCategory] || []).map((member) => ({
+                      ...member,
+                      roleTitle: member.roleTitle || bearerCategory,
+                    }))
+                  )
+                  const flowerGirls = grouped["Flower Ladies"] || []
+
+                  return (
+                    <div key="BearersFlowerGirls">
+                      {categoryIndex > 0 && (
+                        <div className="flex justify-center py-2 sm:py-2.5 md:py-3 mb-2 sm:mb-2.5 md:mb-3">
+                          <div className="w-full max-w-md h-px" style={dividerLineStyle} />
+                        </div>
+                      )}
+                      {flowerGirls.length > 0 ? (
+                        <TwoColumnLayout leftTitle="Bearers" rightTitle="Flower Girls">
                           {(() => {
-                            const maxLen = Math.max(littleGroom.length, littleBride.length)
+                            const maxLen = Math.max(bearers.length, flowerGirls.length)
                             const rows = []
                             for (let i = 0; i < maxLen; i++) {
-                              const left = littleGroom[i]
-                              const right = littleBride[i]
+                              const left = bearers[i]
+                              const right = flowerGirls[i]
                               rows.push(
-                                <React.Fragment key={`little-row-${i}`}>
-                                  <div key={`littlegroom-cell-${i}`} className="px-0.5 sm:px-1 md:px-1.5 min-w-0 overflow-hidden">
+                                <React.Fragment key={`bearer-flower-row-${i}`}>
+                                  <div className="px-0.5 sm:px-1 md:px-1.5 min-w-0 overflow-hidden">
                                     {left ? <NameItem member={left} align="right" /> : <div className="py-0.5" />}
                                   </div>
-                                  <div key={`littlebride-cell-${i}`} className="px-0.5 sm:px-1 md:px-1.5 min-w-0 overflow-hidden">
+                                  <div className="px-0.5 sm:px-1 md:px-1.5 min-w-0 overflow-hidden">
                                     {right ? <NameItem member={right} align="left" /> : <div className="py-0.5" />}
                                   </div>
                                 </React.Fragment>
@@ -1231,15 +1244,28 @@ export function Entourage() {
                             return rows
                           })()}
                         </TwoColumnLayout>
-                      </div>
-                    )
-                  }
-                  // Skip rendering for "Little Bride" since it's already rendered above
-                  return null
+                      ) : (
+                        <TwoColumnLayout singleTitle="Bearers" centerContent={true}>
+                          {bearers.map((member, idx) => (
+                            <div
+                              key={`bearer-${idx}-${member.name}`}
+                              className="col-span-2 flex justify-center min-w-0 overflow-hidden px-0.5 sm:px-1"
+                            >
+                              <NameItem member={member} align="center" />
+                            </div>
+                          ))}
+                        </TwoColumnLayout>
+                      )}
+                    </div>
+                  )
                 }
 
                 if (category === "Flower Ladies") {
                   if (members.length === 0) return null
+                  // Already rendered alongside the Bearers
+                  if (BEARER_CATEGORIES.some((bearerCategory) => (grouped[bearerCategory]?.length ?? 0) > 0)) {
+                    return null
+                  }
 
                   return (
                     <div key="FlowerLadies">

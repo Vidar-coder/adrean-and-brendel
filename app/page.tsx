@@ -240,7 +240,7 @@ export default function Home() {
               {/* <WeddingTimeline /> */}
               <Entourage />
               <Details />
-              <GuestList />
+              {/* <GuestList /> */}
 
               <Gallery />
               <Messages />

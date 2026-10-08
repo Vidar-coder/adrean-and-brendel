@@ -1476,7 +1476,7 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                   ) : principalSponsor ? (
                     <ProposalMixedText text="Thank you for saying yes!" />
                   ) : (
-                    <ProposalMixedText text="We couldn't be happier" />
+                    <ProposalMixedText text="We couldn't be happier to have you by our side!" />
                   )}
                 </ProposalFlowSubheader>
 
