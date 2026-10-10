@@ -3,8 +3,6 @@ import type { ProposalRoleDefinition } from "@/lib/proposal-types"
 /**
  * Proposal invite roles — edit this file to add, remove, or update roles.
  * `roleCategory` must match the RoleCategory column in your entourage Google Sheet.
- *
- * For Matron vs Maid of Honor, use the honor-attendant entry + `proposal.honorAttendant` in site.ts.
  */
 export const proposalRoleDefinitions: ProposalRoleDefinition[] = [
   {
@@ -17,16 +15,22 @@ export const proposalRoleDefinitions: ProposalRoleDefinition[] = [
       "To stand beside the groom on one of the most important days of his life — offering counsel, steady support, and a trusted presence from preparation through celebration, and helping keep every moment joyful and meaningful.",
   },
   {
-    id: "honor-attendant",
-    variant: "honorAttendant",
+    id: "matron-of-honor",
+    title: "Matron of Honor",
     category: "Entourage",
     type: "entourage",
-    descriptions: {
-      "Matron of Honor":
-        "To stand beside the bride with love and grace — lending a steady hand through every step of the day, sharing in her joy and excitement, and helping make each moment leading up to and on our wedding day truly unforgettable.",
-      "Maid of Honor":
-        "To stand beside the bride with love and loyalty — lending a steady hand through every step of the day, sharing in her joy and excitement, and helping make each moment leading up to and on our wedding day truly unforgettable.",
-    },
+    roleCategory: "Matron of Honor",
+    description:
+      "To stand beside the bride with love and grace — lending a steady hand through every step of the day, sharing in her joy and excitement, and helping make each moment leading up to and on our wedding day truly unforgettable.",
+  },
+  {
+    id: "maid-of-honor",
+    title: "Maid of Honor",
+    category: "Entourage",
+    type: "entourage",
+    roleCategory: "Maid of Honor",
+    description:
+      "To stand beside the bride with love and loyalty — lending a steady hand through every step of the day, sharing in her joy and excitement, and helping make each moment leading up to and on our wedding day truly unforgettable.",
   },
   {
     id: "bridesmaid",
@@ -54,6 +58,15 @@ export const proposalRoleDefinitions: ProposalRoleDefinition[] = [
     roleCategory: "Flower Girls",
     description:
       "To scatter petals down the aisle with delight and wonder — bringing sweetness, innocence, and a touch of magic to the ceremony that will make our walk toward forever even more beautiful.",
+  },
+  {
+    id: "flower-boy",
+    title: "Flower Boy",
+    category: "Entourage",
+    type: "entourage",
+    roleCategory: "Flower Boys",
+    description:
+      "To walk down the aisle with a big smile and a heart full of joy — bringing charm, cheer, and a touch of magic to the ceremony that will make our walk toward forever even more beautiful.",
   },
   {
     id: "ring-bearer",
@@ -158,8 +171,7 @@ export const proposalRoleDefinitions: ProposalRoleDefinition[] = [
 
 /** Legacy proposal URLs that should still open the correct role. */
 export const proposalRoleIdAliases: Record<string, string> = {
-  "matron-of-honor": "honor-attendant",
-  "maid-of-honor": "honor-attendant",
+  "honor-attendant": "matron-of-honor",
   "Herald Bearer": "herald-bearer",
   "herald bearer": "herald-bearer",
 }

@@ -423,6 +423,7 @@ ${groom} & ${bride}`
                 Shown on the proposal as &ldquo;
                 {selectedInviteRole &&
                 (selectedInviteRole.id === "flower-girl" ||
+                  selectedInviteRole.id === "flower-boy" ||
                   [
                     "ring-bearer",
                     "coin-bearer",

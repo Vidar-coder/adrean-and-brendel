@@ -569,7 +569,7 @@ export function EntourageSponsors({
                   value={entourageFormData.RoleCategory}
                   onChange={(e) => setEntourageFormData({ ...entourageFormData, RoleCategory: e.target.value })}
                   className="w-full px-4 py-2 border border-[#E5E7EB] rounded-lg focus:ring-2 focus:ring-[#A67C52] focus:border-transparent outline-none"
-                  placeholder="e.g., Bridesmaid, Groomsman"
+                  placeholder="e.g., Best Man, Maid of Honor, Matron of Honor"
                 />
               </div>
 

@@ -594,7 +594,7 @@ function isCeremonyBearerProposal(role: ProposalRole): boolean {
 }
 
 function isFlowerGirlProposal(role: ProposalRole): boolean {
-  return role.id === "flower-girl"
+  return role.id === "flower-girl" || role.id === "flower-boy"
 }
 
 const LITTLE_ATTENDANT_ROLE_IDS = new Set(["little-bride", "little-groomsman"])
@@ -1626,7 +1626,7 @@ function ProposalPageInner({ role }: ProposalPageProps) {
                   }
                   mixedText={
                     flowerGirl
-                      ? "Thank you for taking the time to consider being our Flower Girl. Whether you're able to be part of our wedding or not, we hope you know how special you are to us. We'll still be very happy to celebrate our special day with you!"
+                      ? `Thank you for taking the time to consider being our ${role.title}. Whether you're able to be part of our wedding or not, we hope you know how special you are to us. We'll still be very happy to celebrate our special day with you!`
                       : bearerStyleInvite
                         ? `Thank you for considering being our ${role.title}. We hope you know that you are special to us, and we'll be happy to have you celebrate our wedding with us in any way.`
                         : undefined
